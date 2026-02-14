@@ -7,7 +7,6 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 // ========== 全局变量 ==========
 let scene, camera, renderer, controls;
 let buildings = [];
-let roads = [];
 let car = null;
 let currentTransport = 'taxi';
 let selectedDestination = null;
@@ -424,7 +423,7 @@ function createVehicle() {
       carGroup.visible = true;
     },
     undefined,
-    (error) => {
+    () => {
       // 加载失败时使用备用的简单车辆
       createFallbackVehicle(carGroup);
     }
@@ -930,7 +929,7 @@ function startJourney() {
     geometry.setAttribute('alpha', new THREE.BufferAttribute(alphas, 1));
 
     // 使用自定义shader材质
-    const shaderMaterial = new THREE.ShaderMaterial({
+    routePreviewLine.material = new THREE.ShaderMaterial({
       uniforms: {
         color: { value: new THREE.Color(0xffff00) },
         opacity: { value: 0.9 },
@@ -955,8 +954,6 @@ function startJourney() {
       depthTest: true,
       depthWrite: false,
     });
-
-    routePreviewLine.material = shaderMaterial;
     // 保留路线不删除，只是把引用存到routeSegments数组中
     routeSegments = [routePreviewLine];
   }
@@ -1106,7 +1103,6 @@ function removePassedRouteSegments() {
   for (let i = 0; i < vertexCount; i++) {
     // 获取当前顶点的世界坐标
     const x = positionAttribute.getX(i);
-    const y = positionAttribute.getY(i);
     const z = positionAttribute.getZ(i);
 
     // 计算顶点到小车的距离
@@ -1281,7 +1277,7 @@ function animate() {
       child.userData.originalPos
     ) {
       const time = Date.now() * 0.005;
-      child.position.y = child.userData.originalPos.y + Math.sin(time) * 1;
+      child.position.y = child.userData.originalPos.y + Math.sin(time);
       child.material.emissiveIntensity = 0.5 + Math.sin(time) * 0.5;
     }
   });
@@ -1350,8 +1346,6 @@ function showDestinationInfo(destinationType = null) {
     const now = new Date();
     const diffTime = Math.abs(now - startDate);
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    const years = Math.floor(diffDays / 365);
-    const days = diffDays % 365;
 
     const hundredYears = 100 * 365;
     const remainingDays = hundredYears - diffDays;
