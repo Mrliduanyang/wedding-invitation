@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+  // Hugo static 目录的访问路径
+  base: './',
   build: {
     // 启用压缩
     minify: 'terser',
