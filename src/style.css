@@ -1,0 +1,566 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  overflow: hidden;
+  background: #000;
+}
+
+#canvas-container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
+
+.ui-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 30px;
+}
+
+.header {
+  text-align: center;
+  color: #fff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.header h1 {
+  font-size: 3em;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, #ff69b4, #ff1493);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+}
+
+.header p {
+  font-size: 1.2em;
+  color: #ddd;
+}
+
+.controls-panel {
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid #ff69b4;
+  border-radius: 15px;
+  padding: 30px;
+  max-width: 500px;
+  color: #fff;
+  backdrop-filter: blur(10px);
+  pointer-events: all;
+  z-index: 100;
+}
+
+.panel-title {
+  font-size: 1.5em;
+  margin-bottom: 20px;
+  color: #ff69b4;
+  text-align: center;
+}
+
+.control-group {
+  margin-bottom: 20px;
+}
+
+.control-group label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 1em;
+  color: #ddd;
+}
+
+.transport-options {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.btn {
+  flex: 1;
+  padding: 12px 20px;
+  border: 2px solid #ff69b4;
+  background: rgba(255, 105, 180, 0.2);
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: all 0.3s ease;
+  font-weight: bold;
+}
+
+.btn:hover {
+  background: rgba(255, 105, 180, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn.active {
+  background: #ff69b4;
+  box-shadow: 0 0 20px rgba(255, 105, 180, 0.8);
+}
+
+select,
+input[type="text"] {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #ff69b4;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 1em;
+  margin-bottom: 10px;
+  font-family: inherit;
+}
+
+select option {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, #ff69b4, #ff1493);
+  border: none;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(255, 105, 180, 0.6);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.status-box {
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid #00ff88;
+  border-radius: 10px;
+  padding: 15px;
+  color: #00ff88;
+  font-family: "Courier New", monospace;
+  font-size: 0.9em;
+  max-width: 400px;
+  pointer-events: all;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.balloons {
+  position: absolute;
+  pointer-events: none;
+}
+
+.balloon {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.9;
+  animation: float 8s infinite ease-in-out;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  50% {
+    transform: translateY(-30px) translateX(15px);
+  }
+}
+
+.banner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 105, 180, 0.95);
+  padding: 40px 60px;
+  border-radius: 20px;
+  color: #fff;
+  text-align: center;
+  font-size: 2em;
+  font-weight: bold;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  z-index: 200;
+  pointer-events: none;
+  animation: bannerPop 0.8s ease-out;
+}
+
+@keyframes bannerPop {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+.info-panel {
+  position: absolute;
+  bottom: 30px;
+  right: 30px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid #ff69b4;
+  border-radius: 10px;
+  padding: 20px;
+  color: #fff;
+  max-width: 300px;
+  pointer-events: all;
+  z-index: 100;
+}
+
+.info-panel h3 {
+  color: #ff69b4;
+  margin-bottom: 10px;
+}
+
+.info-panel p {
+  font-size: 0.9em;
+  line-height: 1.6;
+  color: #ddd;
+}
+
+.route-info {
+  background: rgba(0, 255, 136, 0.1);
+  border-left: 3px solid #00ff88;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+}
+
+.distance {
+  color: #00ff88;
+  font-weight: bold;
+}
+
+.time {
+  color: #ff69b4;
+  font-weight: bold;
+}
+
+/* 弹窗动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 目的地信息弹窗样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-overlay.closing {
+  animation: fadeOut 0.3s ease;
+}
+
+.modal-content {
+  border-radius: 30px;
+  max-width: 800px;
+  max-height: 85vh;
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.6);
+  animation: slideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+  background: linear-gradient(135deg, #4a9ff5 0%, #87ceeb 50%, #b0e0e6 100%);
+}
+
+/* 婚礼现场弹窗主题 */
+#weddingModal .modal-content {
+  background: linear-gradient(135deg, #ff6b9d 0%, #ffa07a 50%, #ffd700 100%);
+}
+
+/* 新郎家弹窗主题 */
+#groomModal .modal-content {
+  background: linear-gradient(135deg, #4a9ff5 0%, #6cb4ee 50%, #87ceeb 100%);
+}
+
+/* 新娘家弹窗主题 */
+#brideModal .modal-content {
+  background: linear-gradient(135deg, #ffb6c1 0%, #ffc0cb 50%, #ffe4e1 100%);
+}
+
+/* LED滚动屏幕 */
+.led-screen {
+  background: #000;
+  padding: 25px 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.led-text {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: scrollLED 10s linear infinite;
+  will-change: transform;
+}
+
+.led-content {
+  color: #ffff00;
+  font-size: 32px;
+  font-weight: bold;
+  text-shadow: 0 0 10px #ffff00, 0 0 20px #ffff00, 0 0 30px #ff6b9d;
+  font-family: 'Arial Black', sans-serif;
+  letter-spacing: 3px;
+  flex-shrink: 0;
+}
+
+.led-content::after {
+  content: ' ✨ ';
+  padding: 0 100px;
+  display: inline-block;
+}
+
+@keyframes scrollLED {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* 主体内容 */
+.modal-main {
+  display: flex;
+  padding: 40px;
+  gap: 30px;
+  align-items: center;
+}
+
+/* 左侧：新人合照 (2:3比例) */
+.modal-photo {
+  flex: 0 0 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-placeholder {
+  width: 360px;
+  height: 540px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  border: 5px solid rgba(255, 255, 255, 0.8);
+}
+
+.photo-placeholder span {
+  font-size: 100px;
+  margin-bottom: 15px;
+}
+
+.photo-placeholder p {
+  font-size: 20px;
+  color: #666;
+  font-weight: bold;
+  margin: 0;
+}
+
+/* 右侧：宴席信息 */
+.modal-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  color: white;
+}
+
+.info-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.info-icon {
+  font-size: 36px;
+}
+
+.info-title h2 {
+  margin: 0;
+  font-size: 32px;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.info-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.info-item {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.info-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  opacity: 0.95;
+}
+
+.label-icon {
+  font-size: 20px;
+}
+
+.info-value {
+  font-size: 22px;
+  font-weight: bold;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  line-height: 1.4;
+}
+
+/* 爱情故事样式 */
+.love-story {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  color: white;
+  font-size: 16px;
+  line-height: 1.8;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.love-story p {
+  margin: 0;
+  text-indent: 2em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.love-story::-webkit-scrollbar {
+  width: 8px;
+}
+
+.love-story::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.love-story::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+.love-story::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.modal-close-btn {
+  width: 100%;
+  padding: 16px;
+  background: white;
+  color: #4a9ff5;
+  border: none;
+  border-radius: 15px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  margin-top: 25px;
+}
+
+.modal-close-btn:hover {
+  transform: scale(1.05) translateY(-3px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* 婚礼现场关闭按钮 */
+#weddingModal .modal-close-btn {
+  color: #ff6b9d;
+}
+
+/* 新郎家关闭按钮 */
+#groomModal .modal-close-btn {
+  color: #4a9ff5;
+}
+
+/* 新娘家关闭按钮 */
+#brideModal .modal-close-btn {
+  color: #ffb6c1;
+}

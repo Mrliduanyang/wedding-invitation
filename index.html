@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>婚礼导航系统</title>
+  </head>
+  <body>
+    <div id="canvas-container"></div>
+
+    <div class="ui-overlay">
+      <div class="header">
+        <h1>💒 欢迎来到xx的婚礼导航</h1>
+      </div>
+
+      <div style="display: flex; gap: 30px; align-items: flex-start">
+        <div class="controls-panel" id="controlsPanel">
+          <div class="panel-title">出行方案</div>
+
+          <div class="control-group">
+            <label>选择出行方式</label>
+            <div class="transport-options">
+              <button class="btn active" data-transport="taxi" id="taxiBtn">
+                🚖 打车
+              </button>
+              <button class="btn" data-transport="drive" id="driveBtn">
+                🚗 自驾
+              </button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label>选择目的地</label>
+            <select id="destinationSelect">
+              <option value="">-- 请选择目的地 --</option>
+              <option value="wedding">💒 婚礼现场 - 香格里拉大酒店</option>
+              <option value="groom">🤵 新郎家</option>
+              <option value="bride">👰 新娘家</option>
+            </select>
+          </div>
+
+          <button class="btn-primary" id="generateBtn">生成导航路线</button>
+          <button
+            class="btn-primary"
+            style="background: linear-gradient(135deg, #1e90ff, #00bfff)"
+            id="startBtn"
+            disabled
+          >
+            开始导航
+          </button>
+        </div>
+
+        <div class="status-box" id="statusBox">
+          准备就绪，请选择出行方式和目的地
+        </div>
+      </div>
+
+      <div class="info-panel" id="infoPanel" style="display: none">
+        <h3>📍 导航信息</h3>
+        <div id="routeInfo"></div>
+      </div>
+    </div>
+
+    <!-- 婚礼现场弹窗 -->
+    <div id="weddingModal" class="modal-overlay" style="display: none">
+      <div class="modal-content">
+        <!-- LED滚动屏幕 -->
+        <div class="led-screen">
+          <div class="led-text">
+            <span class="led-content">💒 执子之手，与子偕老 · 离百年好合还有XX年XX天 💒</span>
+            <span class="led-content">💒 执子之手，与子偕老 · 离百年好合还有XX年XX天 💒</span>
+          </div>
+        </div>
+
+        <!-- 主体内容 -->
+        <div class="modal-main">
+          <!-- 左侧：新人合照 -->
+          <div class="modal-photo">
+            <div class="photo-placeholder">
+              <span>👰🤵</span>
+              <p>新人合照</p>
+            </div>
+          </div>
+
+          <!-- 右侧：宴席信息 -->
+          <div class="modal-info">
+            <div class="info-title">
+              <span class="info-icon">🎉</span>
+              <h2>婚礼宴席</h2>
+            </div>
+
+            <div class="info-details">
+              <div class="info-item">
+                <div class="info-label">
+                  <span class="label-icon">📍</span>
+                  地点
+                </div>
+                <div class="info-value">南阳市梅溪国际酒店</div>
+              </div>
+
+              <div class="info-item">
+                <div class="info-label">
+                  <span class="label-icon">📅</span>
+                  时间
+                </div>
+                <div class="info-value">2026年5月18日</div>
+              </div>
+            </div>
+
+            <button class="modal-close-btn" onclick="closeModal('wedding')">
+              一定到
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 新郎家弹窗 -->
+    <div id="groomModal" class="modal-overlay" style="display: none">
+      <div class="modal-content">
+        <!-- LED滚动屏幕 -->
+        <div class="led-screen">
+          <div class="led-text">
+            <span class="led-content">🤵 这是帅气的新郎，一个温柔体贴、幽默风趣的好男人 🤵</span>
+            <span class="led-content">🤵 这是帅气的新郎，一个温柔体贴、幽默风趣的好男人 🤵</span>
+          </div>
+        </div>
+
+        <!-- 主体内容 -->
+        <div class="modal-main">
+          <!-- 左侧：新郎照片 -->
+          <div class="modal-photo">
+            <div class="photo-placeholder">
+              <span>🤵</span>
+              <p>新郎照片</p>
+            </div>
+          </div>
+
+          <!-- 右侧：爱情故事 -->
+          <div class="modal-info">
+            <div class="info-title">
+              <span class="info-icon">💙</span>
+              <h2>我们的故事</h2>
+            </div>
+
+            <div class="love-story">
+              <p>
+                那年春天，我们在图书馆相遇。你低头看书的样子，让我一眼就认定了你。
+              </p>
+              <p>
+                从那天起，我们一起经历了无数个日夜，一起笑，一起哭，一起成长。
+              </p>
+              <p>
+                你说你喜欢看日落，我便陪你看遍了城市的每一个角落的夕阳。
+              </p>
+              <p>
+                今天，我们终于要步入婚姻的殿堂，开启人生新的篇章。我承诺，会用一生来爱你、宠你、守护你。
+              </p>
+            </div>
+
+            <button class="modal-close-btn" onclick="closeModal('groom')">
+              帅滴很
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 新娘家弹窗 -->
+    <div id="brideModal" class="modal-overlay" style="display: none">
+      <div class="modal-content">
+        <!-- LED滚动屏幕 -->
+        <div class="led-screen">
+          <div class="led-text">
+            <span class="led-content">👰 这是美丽的新娘，一个善良温柔、知书达理的好女孩 👰</span>
+            <span class="led-content">👰 这是美丽的新娘，一个善良温柔、知书达理的好女孩 👰</span>
+          </div>
+        </div>
+
+        <!-- 主体内容 -->
+        <div class="modal-main">
+          <!-- 左侧：新娘照片 -->
+          <div class="modal-photo">
+            <div class="photo-placeholder">
+              <span>👰</span>
+              <p>新娘照片</p>
+            </div>
+          </div>
+
+          <!-- 右侧：爱情故事 -->
+          <div class="modal-info">
+            <div class="info-title">
+              <span class="info-icon">💗</span>
+              <h2>我们的故事</h2>
+            </div>
+
+            <div class="love-story">
+              <p>
+                那个雨天，你为我撑起了伞，也撑起了我整个世界。你的笑容，温暖了我的心房。
+              </p>
+              <p>
+                我们一起走过春夏秋冬，你陪我看过最美的风景，也陪我度过最难的时光。
+              </p>
+              <p>
+                你说你会一直陪着我，我便相信了。因为你的眼神，从不骗人。
+              </p>
+              <p>
+                今天，我穿上洁白的婚纱，挽着你的手，走向幸福的未来。我愿与你携手共度余生，不离不弃。
+              </p>
+            </div>
+
+            <button class="modal-close-btn" onclick="closeModal('bride')">
+              美滴很
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
