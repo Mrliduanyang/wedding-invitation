@@ -346,7 +346,7 @@ select option {
 /* LED滚动屏幕 */
 .led-screen {
   background: #000;
-  padding: 25px 0;
+  padding: 20px 0;
   overflow: hidden;
   position: relative;
 }
@@ -753,18 +753,43 @@ select option {
   }
 
   /* 弹窗适配 */
-  .modal-content {
-    max-width: 95%;
-    max-height: 90vh;
-    margin: 10px;
+  .modal-overlay {
+    padding: 10px;
+    align-items: flex-start; /* 从顶部开始，而不是居中 */
+    padding-top: 20px; /* 为固定标题留出空间 */
   }
 
+  .modal-content {
+    max-width: 100%;
+    max-height: calc(100vh - 40px); /* 减去上下padding */
+    margin: 0;
+    border-radius: 20px;
+    overflow: hidden; /* 隐藏外层滚动 */
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* LED滚动屏幕移动端优化 */
+  .led-screen {
+    padding: 12px 0;
+    flex-shrink: 0; /* 不压缩 */
+  }
+
+  .led-content {
+    font-size: 14px;
+    letter-spacing: 1px;
+  }
+
+  /* 主体内容 */
   .modal-main {
     flex-direction: column;
-    padding: 20px;
-    gap: 20px;
+    padding: 15px;
+    gap: 15px;
+    overflow-y: auto; /* 只在主体内容区域滚动 */
+    flex: 1; /* 占据剩余空间 */
   }
 
+  /* 照片区域 */
   .modal-photo {
     flex: none;
     width: 100%;
@@ -774,45 +799,76 @@ select option {
     width: 100%;
     height: auto;
     aspect-ratio: 2/3;
-    max-width: 300px;
-    max-height: 450px;
+    max-width: 200px;
+    max-height: 300px;
     margin: 0 auto;
   }
 
   .photo-placeholder span {
-    font-size: 80px;
+    font-size: 50px;
   }
 
   .photo-placeholder p {
-    font-size: 18px;
+    font-size: 14px;
   }
 
+  /* 信息区域 */
   .modal-info {
     width: 100%;
   }
 
+  .info-title {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+  }
+
   .info-title h2 {
-    font-size: 24px;
-  }
-
-  .info-icon {
-    font-size: 28px;
-  }
-
-  .info-item {
-    padding: 15px;
-  }
-
-  .info-value {
-    font-size: 18px;
-  }
-
-  .led-content {
     font-size: 20px;
   }
 
+  .info-icon {
+    font-size: 24px;
+  }
+
+  .info-details {
+    gap: 15px;
+  }
+
+  .info-item {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .info-label {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  .label-icon {
+    font-size: 16px;
+  }
+
+  .info-value {
+    font-size: 16px;
+  }
+
+  /* 爱情故事 */
   .love-story {
     font-size: 14px;
-    max-height: 300px;
+    line-height: 1.6;
+    max-height: 250px;
+    padding: 15px;
+  }
+
+  .love-story p {
+    text-indent: 2em;
+  }
+
+  /* 关闭按钮 */
+  .modal-close-btn {
+    padding: 14px;
+    font-size: 16px;
+    border-radius: 12px;
+    margin-top: 15px;
   }
 }

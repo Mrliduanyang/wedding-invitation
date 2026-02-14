@@ -1882,3 +1882,4 @@ window.addEventListener('load', () => {
     detectMobile();
   });
 });
+
