@@ -162,7 +162,7 @@ function createBuildings() {
       width: 35,
       depth: 35,
       height: 55,
-      name: '婚礼现场 - 南阳梅溪国际酒店',
+      name: '婚礼现场 - xxxx',
       color: 0xff69b4,
       isVenue: true,
       destination: 'wedding',
