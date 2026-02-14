@@ -24,6 +24,7 @@ const synth = window.speechSynthesis;
 let keyState = {}; // 存储键盘状态
 let carSpeed = 0.2; // 小车移动速度（降低速度）
 let lastUpdatedRouteIndex = -1; // 上次更新导航线时的路径点索引
+let isMobile = false; // 是否为移动端
 
 // 引擎声音系统
 let audioContext = null;
@@ -42,8 +43,15 @@ let isDecelerating = false; // 是否正在减速
 const acceleration = 0.001; // 加速度（每帧增加的速度）- 降低以延长加速时间
 const deceleration = 0.0012; // 减速度（每帧减少的速度）- 平衡速度，既明显又能到达
 
+// ========== 检测是否为移动端 ==========
+function detectMobile() {
+  isMobile = window.innerWidth <= 768;
+  return isMobile;
+}
+
 // ========== Three.js 初始化 ==========
 function initThreeJS() {
+  detectMobile();
   const container = document.getElementById('canvas-container');
 
   // 场景设置
@@ -550,9 +558,24 @@ function generateRoute() {
 
   generateRoutePoints();
 
+  // 移动端：隐藏控制面板、状态框和导航信息
+  if (isMobile) {
+    document.getElementById('controlsPanel').style.display = 'none';
+    document.getElementById('statusBox').style.display = 'none';
+    document.getElementById('infoPanel').style.display = 'none';
+  }
+
   // 先切换到俯视视角，完成后再显示路线预览
   switchToTopView(() => {
-    // 视角切换完成后的回调，开始路线预览
+    // 视角切换完成后的回调
+    // 移动端：在开始绘制前，先将相机移动到路线起点
+    if (isMobile && currentRoutePoints.length > 0) {
+      const startPoint = currentRoutePoints[0];
+      camera.position.set(startPoint.x, 300, startPoint.z + 50);
+      controls.target.set(startPoint.x, 0, startPoint.z);
+      controls.update();
+    }
+    // 开始路线预览
     showRoutePreview();
   });
 }
@@ -823,10 +846,38 @@ function showRoutePreview() {
       // TubeGeometry不需要定位，直接添加到场景
       routePreviewLine = new THREE.Mesh(tubeGeometry, tubeMaterial);
       scene.add(routePreviewLine);
+
+      // 移动端：水平平移相机，跟随当前绘制点
+      if (isMobile && currentPointIndex > 0) {
+        const currentPoint = currentRoutePoints[currentPointIndex];
+
+        // 只在水平方向（X和Z轴）平移，保持高度不变
+        const lerpFactor = 0.15;
+
+        // 目标点跟随当前绘制点
+        controls.target.x += (currentPoint.x - controls.target.x) * lerpFactor;
+        controls.target.z += (currentPoint.z - controls.target.z) * lerpFactor;
+        // 保持Y轴不变
+        controls.target.y = 0;
+
+        // 相机位置也跟随平移，保持固定的相对位置
+        camera.position.x += (currentPoint.x - camera.position.x) * lerpFactor;
+        camera.position.z +=
+          (currentPoint.z + 50 - camera.position.z) * lerpFactor;
+        // 保持高度不变
+        camera.position.y = 300;
+
+        controls.update();
+      }
     }
 
     if (progress < 1) {
       requestAnimationFrame(animateRouteLine);
+    } else {
+      // 路线预览完成，移动端显示控制面板
+      if (isMobile) {
+        document.getElementById('controlsPanel').style.display = 'block';
+      }
     }
   }
 
@@ -848,6 +899,22 @@ function startJourney() {
   const controlsPanel = document.getElementById('controlsPanel');
   if (controlsPanel) {
     controlsPanel.style.display = 'none';
+  }
+
+  // 移动端：显示虚拟方向键和导航信息
+  if (isMobile) {
+    const virtualJoystick = document.getElementById('virtualJoystick');
+    const infoPanel = document.getElementById('infoPanel');
+
+    // 只在自驾模式显示虚拟方向键
+    if (currentTransport === 'drive' && virtualJoystick) {
+      virtualJoystick.classList.add('active');
+    }
+
+    // 显示导航信息
+    if (infoPanel) {
+      infoPanel.style.display = 'block';
+    }
   }
 
   // 根据出行方式显示不同提示和语音播报
@@ -1077,7 +1144,9 @@ function updateEngineSound(speed) {
   // 添加明显的随机波动（模拟引擎转速的自然变化）
   const randomFluctuation = (Math.random() - 0.5) * 12; // ±6Hz 的随机波动（增强4倍）
   const targetFrequency1 =
-    baseFrequency1 + (maxFrequency1 - baseFrequency1) * normalizedSpeed + randomFluctuation;
+    baseFrequency1 +
+    (maxFrequency1 - baseFrequency1) * normalizedSpeed +
+    randomFluctuation;
 
   // 副振荡器保持倍频关系，但有明显偏移避免完全谐和
   const targetFrequency2 = targetFrequency1 * 2.1 + (Math.random() - 0.5) * 8;
@@ -1105,7 +1174,8 @@ function updateEngineSound(speed) {
   // 根据速度调整音量（加速时引擎声更响），添加明显波动
   const volumeFluctuation = (Math.random() - 0.5) * 0.03; // 增强3倍
   const volumePulse = Math.sin(time * 2.5) * 0.02; // 添加节奏性音量变化
-  const targetVolume = 0.08 + normalizedSpeed * 0.04 + volumeFluctuation + volumePulse;
+  const targetVolume =
+    0.08 + normalizedSpeed * 0.04 + volumeFluctuation + volumePulse;
   engineGainNode.gain.setTargetAtTime(
     targetVolume,
     audioContext.currentTime,
@@ -1115,7 +1185,8 @@ function updateEngineSound(speed) {
   // 噪声音量也随速度变化，添加非常明显的脉动效果
   const noisePulse = Math.sin(time * 5) * 0.015; // 5Hz 的脉动（增强3倍）
   const noiseRandomPulse = Math.sin(time * 7.3) * 0.01; // 添加不同频率的叠加
-  const targetNoiseVolume = 0.03 + normalizedSpeed * 0.02 + noisePulse + noiseRandomPulse;
+  const targetNoiseVolume =
+    0.03 + normalizedSpeed * 0.02 + noisePulse + noiseRandomPulse;
   noiseGainNode.gain.setTargetAtTime(
     targetNoiseVolume,
     audioContext.currentTime,
@@ -1382,7 +1453,8 @@ function animate() {
         );
 
         // 计算到终点的距离
-        const finalDestination = currentRoutePoints[currentRoutePoints.length - 1];
+        const finalDestination =
+          currentRoutePoints[currentRoutePoints.length - 1];
         const distanceToEnd = Math.hypot(
           finalDestination.x - car.position.x,
           finalDestination.z - car.position.z
@@ -1556,6 +1628,14 @@ function onArrival() {
   // 停止引擎声音
   stopEngineSound();
 
+  // 移动端：隐藏虚拟方向键
+  if (isMobile) {
+    const virtualJoystick = document.getElementById('virtualJoystick');
+    if (virtualJoystick) {
+      virtualJoystick.classList.remove('active');
+    }
+  }
+
   // 显示目的地信息弹窗
   showDestinationInfo();
 }
@@ -1644,6 +1724,14 @@ window.closeModal = function (destinationType) {
     if (controlsPanel) {
       controlsPanel.style.display = 'block';
     }
+
+    // 移动端：同时显示状态框
+    if (isMobile) {
+      const statusBox = document.getElementById('statusBox');
+      if (statusBox) {
+        statusBox.style.display = 'flex';
+      }
+    }
   }, 300);
 };
 
@@ -1716,6 +1804,57 @@ function onWindowResize() {
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+// ========== 虚拟方向键控制 ==========
+function initVirtualJoystick() {
+  const joystickBtns = document.querySelectorAll(
+    '.joystick-btn:not(.disabled)'
+  );
+
+  joystickBtns.forEach((btn) => {
+    const key = btn.getAttribute('data-key');
+    if (!key) return;
+
+    // 触摸开始
+    btn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      keyState[key] = true;
+      btn.style.background = 'rgba(255, 105, 180, 0.6)';
+    });
+
+    // 触摸结束
+    btn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      keyState[key] = false;
+      btn.style.background = 'rgba(0, 0, 0, 0.6)';
+    });
+
+    // 触摸取消（手指移出按钮）
+    btn.addEventListener('touchcancel', (e) => {
+      e.preventDefault();
+      keyState[key] = false;
+      btn.style.background = 'rgba(0, 0, 0, 0.6)';
+    });
+
+    // 鼠标事件（用于桌面测试）
+    btn.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      keyState[key] = true;
+      btn.style.background = 'rgba(255, 105, 180, 0.6)';
+    });
+
+    btn.addEventListener('mouseup', (e) => {
+      e.preventDefault();
+      keyState[key] = false;
+      btn.style.background = 'rgba(0, 0, 0, 0.6)';
+    });
+
+    btn.addEventListener('mouseleave', (e) => {
+      keyState[key] = false;
+      btn.style.background = 'rgba(0, 0, 0, 0.6)';
+    });
+  });
+}
+
 // ========== 事件绑定 ==========
 window.addEventListener('load', () => {
   initThreeJS();
@@ -1734,4 +1873,12 @@ window.addEventListener('load', () => {
     .getElementById('generateBtn')
     .addEventListener('click', generateRoute);
   document.getElementById('startBtn').addEventListener('click', startJourney);
+
+  // 初始化虚拟方向键
+  initVirtualJoystick();
+
+  // 监听窗口大小变化，更新移动端状态
+  window.addEventListener('resize', () => {
+    detectMobile();
+  });
 });

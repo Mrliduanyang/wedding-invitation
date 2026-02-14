@@ -564,3 +564,255 @@ select option {
 #brideModal .modal-close-btn {
   color: #ffb6c1;
 }
+
+/* ========== 移动端适配 ========== */
+@media (max-width: 768px) {
+  /* 移动端标题样式优化 */
+  .header {
+    padding: 10px 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 200;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+  }
+
+  .header h1 {
+    font-size: 1.5em;
+    margin-bottom: 0;
+  }
+
+  .header p {
+    font-size: 0.9em;
+  }
+
+  /* UI覆盖层重新布局 */
+  .ui-overlay {
+    padding: 10px;
+    padding-top: 80px; /* 为固定标题留出空间 */
+    justify-content: flex-end;
+    flex-direction: column;
+  }
+
+  /* 底部容器 - 包含控制面板和状态框 */
+  .ui-overlay > div[style*="display: flex"] {
+    flex-direction: column !important;
+    gap: 10px !important;
+    width: 100% !important;
+    align-items: stretch !important;
+  }
+
+  /* 控制面板移动端样式 */
+  .controls-panel {
+    max-width: 100%;
+    width: 100%;
+    padding: 15px;
+    border-radius: 10px;
+  }
+
+  .panel-title {
+    font-size: 1.2em;
+    margin-bottom: 15px;
+  }
+
+  .control-group {
+    margin-bottom: 15px;
+  }
+
+  .transport-options {
+    gap: 10px;
+  }
+
+  .btn {
+    padding: 10px 15px;
+    font-size: 0.9em;
+  }
+
+  .btn-primary {
+    padding: 12px;
+    font-size: 1em;
+  }
+
+  /* 状态框移动端样式 */
+  .status-box {
+    max-width: 100%;
+    width: 100%;
+    min-height: 50px;
+    padding: 12px;
+    font-size: 0.85em;
+  }
+
+  /* 导航信息面板 - 移动端放在标题下方左侧 */
+  .info-panel {
+    position: fixed;
+    top: 70px; /* 标题高度约70-80px，留10px间距 */
+    left: 10px;
+    right: auto;
+    bottom: auto;
+    max-width: calc(100% - 20px);
+    padding: 12px;
+    font-size: 0.85em;
+  }
+
+  .info-panel h3 {
+    font-size: 1em;
+    margin-bottom: 8px;
+  }
+
+  .info-panel p {
+    font-size: 0.8em;
+    line-height: 1.4;
+  }
+
+  /* 虚拟方向键容器 */
+  .virtual-joystick {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 240px;
+    height: 140px;
+    display: none;
+    z-index: 150;
+  }
+
+  .virtual-joystick.active {
+    display: block;
+  }
+
+  /* 方向键布局 - 2行3列 */
+  .joystick-grid {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .joystick-btn {
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid #ff69b4;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 1.8em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    touch-action: none;
+    backdrop-filter: blur(10px);
+    transition: all 0.1s ease;
+  }
+
+  .joystick-btn:active {
+    background: rgba(255, 105, 180, 0.6);
+    transform: scale(0.95);
+  }
+
+  .joystick-btn.disabled {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* 明确指定每个按钮的位置 */
+  /* 第一行：空 上 空 */
+  .joystick-grid > .joystick-btn:nth-child(1) {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .joystick-grid > .joystick-btn:nth-child(2) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .joystick-grid > .joystick-btn:nth-child(3) {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  /* 第二行：左 下 右 */
+  .joystick-grid > .joystick-btn:nth-child(4) {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .joystick-grid > .joystick-btn:nth-child(5) {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .joystick-grid > .joystick-btn:nth-child(6) {
+    grid-column: 3;
+    grid-row: 2;
+  }
+
+  /* 弹窗适配 */
+  .modal-content {
+    max-width: 95%;
+    max-height: 90vh;
+    margin: 10px;
+  }
+
+  .modal-main {
+    flex-direction: column;
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .modal-photo {
+    flex: none;
+    width: 100%;
+  }
+
+  .photo-placeholder {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 2/3;
+    max-width: 300px;
+    max-height: 450px;
+    margin: 0 auto;
+  }
+
+  .photo-placeholder span {
+    font-size: 80px;
+  }
+
+  .photo-placeholder p {
+    font-size: 18px;
+  }
+
+  .modal-info {
+    width: 100%;
+  }
+
+  .info-title h2 {
+    font-size: 24px;
+  }
+
+  .info-icon {
+    font-size: 28px;
+  }
+
+  .info-item {
+    padding: 15px;
+  }
+
+  .info-value {
+    font-size: 18px;
+  }
+
+  .led-content {
+    font-size: 20px;
+  }
+
+  .love-story {
+    font-size: 14px;
+    max-height: 300px;
+  }
+}
