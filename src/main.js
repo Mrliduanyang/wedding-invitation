@@ -18,9 +18,29 @@ let balloons = [];
 let routePreviewLine = null;
 let isShowingRoutePreview = false;
 let routeSegments = []; // 存储路线段，用于动态消失
+
+// 语音播报
+const synth = window.speechSynthesis;
 let keyState = {}; // 存储键盘状态
 let carSpeed = 0.2; // 小车移动速度（降低速度）
 let lastUpdatedRouteIndex = -1; // 上次更新导航线时的路径点索引
+
+// 引擎声音系统
+let audioContext = null;
+let engineOscillator1 = null;
+let engineOscillator2 = null;
+let engineNoiseSource = null;
+let engineGainNode = null;
+let noiseGainNode = null;
+let isEnginePlaying = false;
+
+// 加减速系统
+let currentActualSpeed = 0; // 当前实际速度（从0开始）
+let targetSpeed = 0; // 目标速度
+let isAccelerating = false; // 是否正在加速
+let isDecelerating = false; // 是否正在减速
+const acceleration = 0.001; // 加速度（每帧增加的速度）- 降低以延长加速时间
+const deceleration = 0.0012; // 减速度（每帧减少的速度）- 平衡速度，既明显又能到达
 
 // ========== Three.js 初始化 ==========
 function initThreeJS() {
@@ -161,7 +181,7 @@ function createBuildings() {
       width: 35,
       depth: 35,
       height: 55,
-      name: '婚礼现场 - xxxx',
+      name: '婚礼现场',
       color: 0xff69b4,
       isVenue: true,
       destination: 'wedding',
@@ -309,24 +329,7 @@ function createBuildings() {
 }
 
 function addBuildingIndicator(building, pos) {
-  const light = new THREE.PointLight(pos.color, 2, 100);
-  light.position.set(pos.x, pos.height + 10, pos.z);
-  scene.add(light);
-
-  // 顶部闪烁灯
-  const particleGeometry = new THREE.SphereGeometry(2, 8, 8);
-  const particleMaterial = new THREE.MeshBasicMaterial({
-    color: pos.color,
-  });
-  const particle = new THREE.Mesh(particleGeometry, particleMaterial);
-  particle.position.set(pos.x, pos.height + 5, pos.z);
-  scene.add(particle);
-
-  // 动画
-  particle.userData.originalPos = particle.position.clone();
-  particle.userData.animate = true;
-
-  // 添加向上的箭头指示器
+  // 只添加箭头指示器
   createArrowIndicator(pos);
 }
 
@@ -334,27 +337,16 @@ function createArrowIndicator(pos) {
   // 创建箭头组
   const arrowGroup = new THREE.Group();
 
-  // 箭头主体（圆锥体）
-  const coneGeometry = new THREE.ConeGeometry(3, 6, 4);
+  // 只保留箭头主体（三角形圆锥体）
+  const coneGeometry = new THREE.ConeGeometry(4, 8, 4);
   const coneMaterial = new THREE.MeshBasicMaterial({
     color: pos.color,
     transparent: true,
-    opacity: 0.8,
+    opacity: 0.9,
   });
   const cone = new THREE.Mesh(coneGeometry, coneMaterial);
   cone.rotation.x = Math.PI; // 旋转使箭头朝上
   arrowGroup.add(cone);
-
-  // 箭头杆（圆柱体）
-  const cylinderGeometry = new THREE.CylinderGeometry(0.8, 0.8, 8, 8);
-  const cylinderMaterial = new THREE.MeshBasicMaterial({
-    color: pos.color,
-    transparent: true,
-    opacity: 0.7,
-  });
-  const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
-  cylinder.position.y = -7;
-  arrowGroup.add(cylinder);
 
   // 设置箭头位置（在建筑上方）
   arrowGroup.position.set(pos.x, pos.height + 15, pos.z);
@@ -629,7 +621,10 @@ function findPathOnRoads(start, end) {
 
       if (remainingX >= 100) {
         // 如果距离>=100，按100的步长移动1-2步
-        const steps = Math.min(Math.floor(remainingX / 100), remainingX > 200 ? 2 : 1);
+        const steps = Math.min(
+          Math.floor(remainingX / 100),
+          remainingX > 200 ? 2 : 1
+        );
         for (let i = 0; i < steps; i++) {
           const step = current.x < end.x ? 100 : -100;
           current.x += step;
@@ -648,7 +643,10 @@ function findPathOnRoads(start, end) {
 
       if (remainingZ >= 100) {
         // 如果距离>=100，按100的步长移动1-2步
-        const steps = Math.min(Math.floor(remainingZ / 100), remainingZ > 200 ? 2 : 1);
+        const steps = Math.min(
+          Math.floor(remainingZ / 100),
+          remainingZ > 200 ? 2 : 1
+        );
         for (let i = 0; i < steps; i++) {
           const step = current.z < end.z ? 100 : -100;
           current.z += step;
@@ -852,12 +850,31 @@ function startJourney() {
     controlsPanel.style.display = 'none';
   }
 
-  // 根据出行方式显示不同提示
+  // 根据出行方式显示不同提示和语音播报
+  const destinationNames = {
+    wedding: '婚礼现场',
+    groom: '新郎家',
+    bride: '新娘家',
+  };
+
+  const destName = destinationNames[selectedDestination] || '目的地';
+
   if (currentTransport === 'taxi') {
     updateStatus('🚖 打车模式：自动导航中...');
+    speak(`开始导航，目的地${destName}，请系好安全带`);
   } else {
     updateStatus('🚗 自驾模式：使用方向键控制（↑↓←→）');
+    speak(`开始导航，目的地${destName}，请小心驾驶`);
   }
+
+  // 启动引擎声音
+  startEngineSound();
+
+  // 启动加速过程
+  currentActualSpeed = 0; // 从静止开始
+  targetSpeed = carSpeed; // 目标速度
+  isAccelerating = true;
+  isDecelerating = false;
 
   // 恢复相机控制
   controls.enableRotate = true;
@@ -966,6 +983,181 @@ function startJourney() {
 
 function updateStatus(message) {
   document.getElementById('statusBox').textContent = message;
+}
+
+// 语音播报函数
+function speak(text) {
+  // 取消之前的播报
+  synth.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'zh-CN'; // 设置中文
+  utterance.rate = 1.0; // 语速
+  utterance.pitch = 1.0; // 音调
+  utterance.volume = 1.0; // 音量
+
+  synth.speak(utterance);
+}
+
+// 初始化引擎声音
+function initEngineSound() {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
+}
+
+// 启动引擎声音
+function startEngineSound() {
+  if (isEnginePlaying) return;
+
+  initEngineSound();
+
+  // 创建主振荡器（低频基础音）
+  engineOscillator1 = audioContext.createOscillator();
+  engineOscillator1.type = 'triangle'; // 三角波更柔和
+  engineOscillator1.frequency.setValueAtTime(60, audioContext.currentTime);
+
+  // 创建副振荡器（高频泛音，增加层次感）
+  engineOscillator2 = audioContext.createOscillator();
+  engineOscillator2.type = 'sine'; // 正弦波作为泛音
+  engineOscillator2.frequency.setValueAtTime(120, audioContext.currentTime); // 倍频
+
+  // 创建噪声（模拟引擎震动和排气声）
+  const bufferSize = audioContext.sampleRate * 2;
+  const noiseBuffer = audioContext.createBuffer(
+    1,
+    bufferSize,
+    audioContext.sampleRate
+  );
+  const output = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    output[i] = Math.random() * 2 - 1;
+  }
+  engineNoiseSource = audioContext.createBufferSource();
+  engineNoiseSource.buffer = noiseBuffer;
+  engineNoiseSource.loop = true;
+
+  // 噪声滤波器（只保留低频噪声）
+  const noiseFilter = audioContext.createBiquadFilter();
+  noiseFilter.type = 'lowpass';
+  noiseFilter.frequency.setValueAtTime(300, audioContext.currentTime);
+
+  // 创建增益节点
+  engineGainNode = audioContext.createGain();
+  engineGainNode.gain.setValueAtTime(0.08, audioContext.currentTime);
+
+  noiseGainNode = audioContext.createGain();
+  noiseGainNode.gain.setValueAtTime(0.03, audioContext.currentTime);
+
+  // 连接节点
+  engineOscillator1.connect(engineGainNode);
+  engineOscillator2.connect(engineGainNode);
+  engineNoiseSource.connect(noiseFilter);
+  noiseFilter.connect(noiseGainNode);
+
+  engineGainNode.connect(audioContext.destination);
+  noiseGainNode.connect(audioContext.destination);
+
+  // 启动
+  engineOscillator1.start();
+  engineOscillator2.start();
+  engineNoiseSource.start();
+  isEnginePlaying = true;
+}
+
+// 更新引擎声音（根据速度调整音调）
+function updateEngineSound(speed) {
+  if (!isEnginePlaying || !engineOscillator1 || !engineOscillator2) return;
+
+  // 根据速度调整频率
+  const baseFrequency1 = 60; // 主振荡器怠速频率
+  const maxFrequency1 = 150; // 主振荡器最高频率
+  const normalizedSpeed = Math.min(speed / 0.3, 1); // 归一化速度
+
+  // 添加明显的随机波动（模拟引擎转速的自然变化）
+  const randomFluctuation = (Math.random() - 0.5) * 12; // ±6Hz 的随机波动（增强4倍）
+  const targetFrequency1 =
+    baseFrequency1 + (maxFrequency1 - baseFrequency1) * normalizedSpeed + randomFluctuation;
+
+  // 副振荡器保持倍频关系，但有明显偏移避免完全谐和
+  const targetFrequency2 = targetFrequency1 * 2.1 + (Math.random() - 0.5) * 8;
+
+  // 添加明显的周期性频率调制（模拟引擎运转的律动感）
+  const time = Date.now() * 0.001;
+  const periodicModulation = Math.sin(time * 3) * 8; // 3Hz 频率，8Hz 振幅（增强4倍）
+
+  // 添加额外的低频调制（模拟引擎负载变化）
+  const lowFreqModulation = Math.sin(time * 0.5) * 5; // 0.5Hz 的慢速调制
+
+  // 平滑过渡频率（缩短时间常数让变化更敏捷）
+  engineOscillator1.frequency.setTargetAtTime(
+    targetFrequency1 + periodicModulation + lowFreqModulation,
+    audioContext.currentTime,
+    0.1
+  );
+
+  engineOscillator2.frequency.setTargetAtTime(
+    targetFrequency2 + periodicModulation * 0.7,
+    audioContext.currentTime,
+    0.1
+  );
+
+  // 根据速度调整音量（加速时引擎声更响），添加明显波动
+  const volumeFluctuation = (Math.random() - 0.5) * 0.03; // 增强3倍
+  const volumePulse = Math.sin(time * 2.5) * 0.02; // 添加节奏性音量变化
+  const targetVolume = 0.08 + normalizedSpeed * 0.04 + volumeFluctuation + volumePulse;
+  engineGainNode.gain.setTargetAtTime(
+    targetVolume,
+    audioContext.currentTime,
+    0.1
+  );
+
+  // 噪声音量也随速度变化，添加非常明显的脉动效果
+  const noisePulse = Math.sin(time * 5) * 0.015; // 5Hz 的脉动（增强3倍）
+  const noiseRandomPulse = Math.sin(time * 7.3) * 0.01; // 添加不同频率的叠加
+  const targetNoiseVolume = 0.03 + normalizedSpeed * 0.02 + noisePulse + noiseRandomPulse;
+  noiseGainNode.gain.setTargetAtTime(
+    targetNoiseVolume,
+    audioContext.currentTime,
+    0.1
+  );
+}
+
+// 停止引擎声音
+function stopEngineSound() {
+  if (!isEnginePlaying) return;
+
+  // 停止所有振荡器
+  if (engineOscillator1) {
+    engineOscillator1.stop();
+    engineOscillator1.disconnect();
+    engineOscillator1 = null;
+  }
+
+  if (engineOscillator2) {
+    engineOscillator2.stop();
+    engineOscillator2.disconnect();
+    engineOscillator2 = null;
+  }
+
+  if (engineNoiseSource) {
+    engineNoiseSource.stop();
+    engineNoiseSource.disconnect();
+    engineNoiseSource = null;
+  }
+
+  // 断开增益节点
+  if (engineGainNode) {
+    engineGainNode.disconnect();
+    engineGainNode = null;
+  }
+
+  if (noiseGainNode) {
+    noiseGainNode.disconnect();
+    noiseGainNode = null;
+  }
+
+  isEnginePlaying = false;
 }
 
 // 设置键盘控制
@@ -1137,10 +1329,17 @@ function checkArrival() {
     destination.z - car.position.z
   );
 
-  // 如果距离目的地很近，触发到达
-  if (distance < 20) {
-    onArrival();
+  // 如果距离目的地较远就开始减速，让减速过程更明显
+  if (distance < 40 && !isDecelerating) {
+    startDeceleration();
   }
+}
+
+// 开始减速过程
+function startDeceleration() {
+  isDecelerating = true;
+  isAccelerating = false;
+  targetSpeed = 0;
 }
 
 // ========== 动画循环 ==========
@@ -1149,6 +1348,26 @@ function animate() {
 
   // 更新控制器
   controls.update();
+
+  // 处理加减速
+  if (isNavigating) {
+    if (isAccelerating && currentActualSpeed < targetSpeed) {
+      // 加速过程
+      currentActualSpeed += acceleration;
+      if (currentActualSpeed >= targetSpeed) {
+        currentActualSpeed = targetSpeed;
+        isAccelerating = false;
+      }
+    } else if (isDecelerating && currentActualSpeed > 0) {
+      // 减速过程
+      currentActualSpeed -= deceleration;
+      // 设置最低速度，避免停在半路
+      const minSpeed = 0.05;
+      if (currentActualSpeed < minSpeed) {
+        currentActualSpeed = minSpeed;
+      }
+    }
+  }
 
   // 更新车辆位置
   if (isNavigating && car) {
@@ -1162,9 +1381,25 @@ function animate() {
           targetPoint.z - car.position.z
         );
 
+        // 计算到终点的距离
+        const finalDestination = currentRoutePoints[currentRoutePoints.length - 1];
+        const distanceToEnd = Math.hypot(
+          finalDestination.x - car.position.x,
+          finalDestination.z - car.position.z
+        );
+
+        // 当接近终点时开始减速（缩短距离避免提前停止）
+        if (distanceToEnd < 40 && !isDecelerating) {
+          startDeceleration();
+        }
+
         if (distance < 5) {
           currentRouteIndex++;
+          // 到达最后一个路点时触发到达
           if (currentRouteIndex >= currentRoutePoints.length) {
+            // 重置速度并触发到达
+            currentActualSpeed = 0;
+            isDecelerating = false;
             onArrival();
           }
         } else {
@@ -1242,11 +1477,15 @@ function animate() {
           }
           // 小于5度：直线行驶，保持100%速度
 
-          const currentSpeed = carSpeed * speedMultiplier;
+          // 使用实际速度（考虑加减速）和转向速度倍数
+          const currentSpeed = currentActualSpeed * speedMultiplier;
 
           // 按当前朝向和调整后的速度前进
           car.position.x += Math.sin(car.rotation.y) * currentSpeed;
           car.position.z += Math.cos(car.rotation.y) * currentSpeed;
+
+          // 更新引擎声音（根据实际速度，不受转向影响）
+          updateEngineSound(currentActualSpeed);
 
           // 更新相机跟随小车
           updateCameraFollow();
@@ -1269,19 +1508,6 @@ function animate() {
     balloon.rotation.x += 0.01;
   });
 
-  // 更新建筑顶部灯光
-  scene.children.forEach((child) => {
-    if (
-      child.userData &&
-      child.userData.animate &&
-      child.userData.originalPos
-    ) {
-      const time = Date.now() * 0.005;
-      child.position.y = child.userData.originalPos.y + Math.sin(time);
-      child.material.emissiveIntensity = 0.5 + Math.sin(time) * 0.5;
-    }
-  });
-
   // 更新箭头指示器动画
   if (window.arrowIndicators) {
     window.arrowIndicators.forEach((arrow) => {
@@ -1299,7 +1525,13 @@ function animate() {
 }
 
 function onArrival() {
+  // 防止重复调用
+  if (!isNavigating) return;
+
   isNavigating = false;
+  isAccelerating = false;
+  isDecelerating = false;
+  currentActualSpeed = 0;
 
   // 清理键盘监听器
   document.removeEventListener('keydown', handleKeyDown);
@@ -1311,6 +1543,18 @@ function onArrival() {
   routeSegments = [];
 
   updateStatus('✨ 已到达目的地！');
+
+  // 语音播报到达
+  const destinationNames = {
+    wedding: '婚礼现场',
+    groom: '新郎家',
+    bride: '新娘家',
+  };
+  const destName = destinationNames[selectedDestination] || '目的地';
+  speak(`已到达${destName}，祝您生活愉快`);
+
+  // 停止引擎声音
+  stopEngineSound();
 
   // 显示目的地信息弹窗
   showDestinationInfo();
@@ -1408,6 +1652,59 @@ window.testDestinationModals = function () {
   showDestinationInfo('wedding');
   setTimeout(() => showDestinationInfo('groom'), 1000);
   setTimeout(() => showDestinationInfo('bride'), 2000);
+};
+
+// 测试引擎声浪的方法
+window.testEngineSound = function () {
+  console.log('🏎️ 测试引擎声浪...');
+  console.log('启动引擎声音（怠速）');
+
+  startEngineSound();
+
+  // 模拟加速过程
+  let speed = 0;
+  const accelerationInterval = setInterval(() => {
+    speed += 0.02;
+    updateEngineSound(speed);
+    console.log(
+      `当前速度: ${speed.toFixed(2)}, 频率约: ${(60 + (150 - 60) * Math.min(speed / 0.3, 1)).toFixed(1)}Hz`
+    );
+
+    if (speed >= 0.3) {
+      console.log('✅ 达到最高速度，保持3秒...');
+      clearInterval(accelerationInterval);
+
+      // 保持最高速3秒后减速
+      setTimeout(() => {
+        console.log('🛑 开始减速...');
+        const decelerationInterval = setInterval(() => {
+          speed -= 0.02;
+          if (speed <= 0) {
+            speed = 0;
+            clearInterval(decelerationInterval);
+            console.log('🏁 停车，3秒后关闭引擎');
+
+            // 怠速3秒后关闭
+            setTimeout(() => {
+              stopEngineSound();
+              console.log('🔇 引擎已关闭');
+            }, 3000);
+          } else {
+            updateEngineSound(speed);
+            console.log(`当前速度: ${speed.toFixed(2)}`);
+          }
+        }, 200);
+      }, 3000);
+    }
+  }, 200);
+
+  console.log('💡 提示: 调用 window.stopTestEngineSound() 可以立即停止测试');
+};
+
+// 立即停止引擎声音测试
+window.stopTestEngineSound = function () {
+  stopEngineSound();
+  console.log('🔇 引擎测试已停止');
 };
 
 // 将showDestinationInfo暴露到全局，方便测试
