@@ -21,7 +21,7 @@ let routeSegments = []; // 存储路线段，用于动态消失
 // 语音播报（兼容性检查）
 const synth = window.speechSynthesis || null;
 let keyState = {}; // 存储键盘状态
-let carSpeed = 0.3; // 小车移动速度（降低速度）
+let carSpeed = 0.3; // 小车移动速度
 let lastUpdatedRouteIndex = -1; // 上次更新导航线时的路径点索引
 let isMobile = false; // 是否为移动端
 
@@ -934,7 +934,6 @@ function startJourney() {
   }
 
   // 📢 在用户交互的同步回调中启动引擎声音（iOS 兼容性要求）
-  console.log('🎬 开始导航，立即启动引擎声音（同步调用）');
   startEngineSound();
 
   // 启动加速过程
@@ -1108,7 +1107,6 @@ function removeToast(toast) {
 function speak(text) {
   // 检查语音合成 API 是否可用
   if (!synth) {
-    console.log('语音播报不可用（浏览器不支持 Speech Synthesis API）:', text);
     // 不支持语音，显示 Toast 提示
     showToast(`🔔 ${text}`, 'info');
     return;
@@ -1126,13 +1124,11 @@ function speak(text) {
 
     // 监听播报失败事件
     utterance.onerror = (event) => {
-      console.error('语音播报出错:', event.error);
       showToast(`🔔 ${text}`, 'warning');
     };
 
     synth.speak(utterance);
   } catch (error) {
-    console.error('语音播报异常:', error);
     // 异常时显示 Toast 提示
     showToast(`🔔 ${text}`, 'warning');
   }
@@ -1143,22 +1139,13 @@ function initEngineSound() {
   if (!audioContext) {
     try {
       audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      console.log('📢 AudioContext 创建成功，状态:', audioContext.state);
 
       // 如果 AudioContext 被挂起（iOS 常见），立即 resume
       if (audioContext.state === 'suspended') {
-        console.log('⚠️ AudioContext 被挂起，尝试 resume...');
-        audioContext
-          .resume()
-          .then(() => {
-            console.log('✅ AudioContext 已 resume');
-          })
-          .catch((err) => {
-            console.error('❌ Resume 失败:', err);
-          });
+        audioContext.resume().then(() => {}).catch(() => {});
       }
     } catch (error) {
-      console.error('❌ AudioContext 创建失败:', error);
+      // AudioContext 创建失败
     }
   }
 }
@@ -1167,13 +1154,10 @@ function initEngineSound() {
 function startEngineSound() {
   if (isEnginePlaying) return;
 
-  console.log('🎵 开始启动引擎声音...');
-
   initEngineSound();
 
   // 再次确保 AudioContext 处于可用状态（iOS 兼容性）
   if (audioContext.state === 'suspended') {
-    console.log('⚠️ AudioContext 仍然被挂起，尝试立即 resume...');
     audioContext.resume();
   }
 
@@ -1228,10 +1212,8 @@ function startEngineSound() {
     engineOscillator1.start();
     engineOscillator2.start();
     engineNoiseSource.start();
-    console.log('✅ 引擎声音已启动！');
     isEnginePlaying = true;
   } catch (error) {
-    console.error('❌ 启动音频节点失败:', error);
     isEnginePlaying = false;
   }
 }
@@ -1537,7 +1519,7 @@ function animate() {
       // 减速过程
       currentActualSpeed -= deceleration;
       // 设置最低速度，避免停在半路
-      const minSpeed = 0.05;
+      const minSpeed = 0.075;
       if (currentActualSpeed < minSpeed) {
         currentActualSpeed = minSpeed;
       }
@@ -1844,59 +1826,6 @@ window.testDestinationModals = function () {
   showDestinationInfo('wedding');
   setTimeout(() => showDestinationInfo('groom'), 1000);
   setTimeout(() => showDestinationInfo('bride'), 2000);
-};
-
-// 测试引擎声浪的方法
-window.testEngineSound = function () {
-  console.log('🏎️ 测试引擎声浪...');
-  console.log('启动引擎声音（怠速）');
-
-  startEngineSound();
-
-  // 模拟加速过程
-  let speed = 0;
-  const accelerationInterval = setInterval(() => {
-    speed += 0.02;
-    updateEngineSound(speed);
-    console.log(
-      `当前速度: ${speed.toFixed(2)}, 频率约: ${(60 + (150 - 60) * Math.min(speed / 0.3, 1)).toFixed(1)}Hz`
-    );
-
-    if (speed >= 0.3) {
-      console.log('✅ 达到最高速度，保持3秒...');
-      clearInterval(accelerationInterval);
-
-      // 保持最高速3秒后减速
-      setTimeout(() => {
-        console.log('🛑 开始减速...');
-        const decelerationInterval = setInterval(() => {
-          speed -= 0.02;
-          if (speed <= 0) {
-            speed = 0;
-            clearInterval(decelerationInterval);
-            console.log('🏁 停车，3秒后关闭引擎');
-
-            // 怠速3秒后关闭
-            setTimeout(() => {
-              stopEngineSound();
-              console.log('🔇 引擎已关闭');
-            }, 3000);
-          } else {
-            updateEngineSound(speed);
-            console.log(`当前速度: ${speed.toFixed(2)}`);
-          }
-        }, 200);
-      }, 3000);
-    }
-  }, 200);
-
-  console.log('💡 提示: 调用 window.stopTestEngineSound() 可以立即停止测试');
-};
-
-// 立即停止引擎声音测试
-window.stopTestEngineSound = function () {
-  stopEngineSound();
-  console.log('🔇 引擎测试已停止');
 };
 
 // 将showDestinationInfo暴露到全局，方便测试
