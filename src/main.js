@@ -21,7 +21,7 @@ let routeSegments = []; // 存储路线段，用于动态消失
 // 语音播报（兼容性检查）
 const synth = window.speechSynthesis || null;
 let keyState = {}; // 存储键盘状态
-let carSpeed = 0.2; // 小车移动速度（降低速度）
+let carSpeed = 0.3; // 小车移动速度（降低速度）
 let lastUpdatedRouteIndex = -1; // 上次更新导航线时的路径点索引
 let isMobile = false; // 是否为移动端
 
