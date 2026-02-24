@@ -21,8 +21,8 @@ export default defineConfig({
         },
       },
     },
-    // CSS 代码分割
-    cssCodeSplit: true,
+    // CSS 代码分割：禁用以让 CSS 内联或单独加载，避免 FOUC
+    cssCodeSplit: false,
     // 设置警告阈值
     chunkSizeWarningLimit: 1000,
     // 压缩分析

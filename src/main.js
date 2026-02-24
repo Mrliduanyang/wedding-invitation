@@ -1,4 +1,3 @@
-import './style.css';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -19,8 +18,8 @@ let routePreviewLine = null;
 let isShowingRoutePreview = false;
 let routeSegments = []; // 存储路线段，用于动态消失
 
-// 语音播报
-const synth = window.speechSynthesis;
+// 语音播报（兼容性检查）
+const synth = window.speechSynthesis || null;
 let keyState = {}; // 存储键盘状态
 let carSpeed = 0.2; // 小车移动速度（降低速度）
 let lastUpdatedRouteIndex = -1; // 上次更新导航线时的路径点索引
@@ -390,7 +389,7 @@ function createVehicle() {
   // 配置DRACOLoader（法拉利模型使用了Draco压缩）
   const dracoLoader = new DRACOLoader();
   dracoLoader.setDecoderPath(
-    'https://www.gstatic.com/draco/versioned/decoders/1.5.6/'
+    '../node_modules/three/examples/jsm/libs/draco/gltf/'
   );
   dracoLoader.setDecoderConfig({ type: 'js' });
   loader.setDRACOLoader(dracoLoader);
@@ -934,7 +933,8 @@ function startJourney() {
     speak(`开始导航，目的地${destName}，请小心驾驶`);
   }
 
-  // 启动引擎声音
+  // 📢 在用户交互的同步回调中启动引擎声音（iOS 兼容性要求）
+  console.log('🎬 开始导航，立即启动引擎声音（同步调用）');
   startEngineSound();
 
   // 启动加速过程
@@ -1054,30 +1054,63 @@ function updateStatus(message) {
 
 // 语音播报函数
 function speak(text) {
-  // 取消之前的播报
-  synth.cancel();
+  // 检查语音合成 API 是否可用
+  if (!synth) {
+    console.log('语音播报不可用:', text);
+    return;
+  }
 
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'zh-CN'; // 设置中文
-  utterance.rate = 1.0; // 语速
-  utterance.pitch = 1.0; // 音调
-  utterance.volume = 1.0; // 音量
+  try {
+    // 取消之前的播报
+    synth.cancel();
 
-  synth.speak(utterance);
-}
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'zh-CN'; // 设置中文
+    utterance.rate = 1.0; // 语速
+    utterance.pitch = 1.0; // 音调
+    utterance.volume = 1.0; // 音量
 
-// 初始化引擎声音
-function initEngineSound() {
-  if (!audioContext) {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    synth.speak(utterance);
+  } catch (error) {
+    console.error('语音播报失败:', error);
   }
 }
 
-// 启动引擎声音
+// 初始化引擎声音 - 在用户交互中同步创建
+function initEngineSound() {
+  if (!audioContext) {
+    try {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      console.log('📢 AudioContext 创建成功，状态:', audioContext.state);
+
+      // 如果 AudioContext 被挂起（iOS 常见），立即 resume
+      if (audioContext.state === 'suspended') {
+        console.log('⚠️ AudioContext 被挂起，尝试 resume...');
+        audioContext.resume().then(() => {
+          console.log('✅ AudioContext 已 resume');
+        }).catch(err => {
+          console.error('❌ Resume 失败:', err);
+        });
+      }
+    } catch (error) {
+      console.error('❌ AudioContext 创建失败:', error);
+    }
+  }
+}
+
+// 启动引擎声音 - 在用户交互的同步回调中执行
 function startEngineSound() {
   if (isEnginePlaying) return;
 
+  console.log('🎵 开始启动引擎声音...');
+
   initEngineSound();
+
+  // 再次确保 AudioContext 处于可用状态（iOS 兼容性）
+  if (audioContext.state === 'suspended') {
+    console.log('⚠️ AudioContext 仍然被挂起，尝试立即 resume...');
+    audioContext.resume();
+  }
 
   // 创建主振荡器（低频基础音）
   engineOscillator1 = audioContext.createOscillator();
@@ -1116,7 +1149,7 @@ function startEngineSound() {
   noiseGainNode = audioContext.createGain();
   noiseGainNode.gain.setValueAtTime(0.03, audioContext.currentTime);
 
-  // 连接节点
+  // 同步连接所有节点
   engineOscillator1.connect(engineGainNode);
   engineOscillator2.connect(engineGainNode);
   engineNoiseSource.connect(noiseFilter);
@@ -1125,14 +1158,20 @@ function startEngineSound() {
   engineGainNode.connect(audioContext.destination);
   noiseGainNode.connect(audioContext.destination);
 
-  // 启动
-  engineOscillator1.start();
-  engineOscillator2.start();
-  engineNoiseSource.start();
-  isEnginePlaying = true;
+  // 同步启动所有节点
+  try {
+    engineOscillator1.start();
+    engineOscillator2.start();
+    engineNoiseSource.start();
+    console.log('✅ 引擎声音已启动！');
+    isEnginePlaying = true;
+  } catch (error) {
+    console.error('❌ 启动音频节点失败:', error);
+    isEnginePlaying = false;
+  }
 }
 
-// 更新引擎声音（根据速度调整音调）
+// 更新引擎声音（根据速度调整音调）- 提升基础音量适配 iOS
 function updateEngineSound(speed) {
   if (!isEnginePlaying || !engineOscillator1 || !engineOscillator2) return;
 

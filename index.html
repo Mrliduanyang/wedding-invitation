@@ -7,6 +7,44 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>婚礼导航系统</title>
+    <!-- 直接在 head 中引入样式文件，避免 FOUC（闪烁未样式化内容） -->
+    <!-- 使用 preload 提高加载优先级 -->
+    <link rel="preload" href="/src/style.css" as="style" />
+    <link rel="stylesheet" href="/src/style.css" />
+
+    <!-- 添加基础样式防止加载期间的样式缺失 -->
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        width: 100%;
+        height: 100%;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        overflow: hidden;
+        background: #000;
+        width: 100%;
+        height: 100%;
+      }
+      #canvas-container {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+        display: block;
+      }
+      .ui-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+    </style>
   </head>
   <body>
     <div id="canvas-container"></div>
