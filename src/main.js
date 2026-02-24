@@ -1490,6 +1490,11 @@ function checkArrival() {
   if (distance < 40 && !isDecelerating) {
     startDeceleration();
   }
+
+  // 检查是否已经到达终点（完全停止）
+  if (distance < 15 && currentActualSpeed < 0.1 && isDecelerating) {
+    onArrival();
+  }
 }
 
 // 开始减速过程
