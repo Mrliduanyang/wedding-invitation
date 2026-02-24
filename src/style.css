@@ -872,3 +872,126 @@ select option {
     margin-top: 15px;
   }
 }
+
+/* ========== Toast 提示样式 ========== */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9998;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.toast {
+  background: rgba(0, 0, 0, 0.95);
+  color: #fff;
+  padding: 15px 25px;
+  border-radius: 8px;
+  border-left: 4px solid #ff69b4;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  font-size: 0.95em;
+  line-height: 1.5;
+  max-width: 400px;
+  word-break: break-word;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: auto;
+  animation: slideInTop 0.3s ease-out;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.toast:hover {
+  background: rgba(0, 0, 0, 0.98);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+}
+
+.toast.removing {
+  animation: slideOutTop 0.3s ease-out forwards;
+}
+
+.toast-icon {
+  font-size: 1.2em;
+  flex-shrink: 0;
+}
+
+.toast-message {
+  flex: 1;
+}
+
+/* Toast 类型变体 */
+.toast.success {
+  border-left-color: #00ff88;
+}
+
+.toast.success .toast-icon {
+  color: #00ff88;
+}
+
+.toast.warning {
+  border-left-color: #ffaa00;
+}
+
+.toast.warning .toast-icon {
+  color: #ffaa00;
+}
+
+.toast.error {
+  border-left-color: #ff4444;
+}
+
+.toast.error .toast-icon {
+  color: #ff4444;
+}
+
+.toast.info {
+  border-left-color: #00ccff;
+}
+
+.toast.info .toast-icon {
+  color: #00ccff;
+}
+
+@keyframes slideInTop {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOutTop {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+/* 移动端 Toast 调整 */
+@media (max-width: 768px) {
+  .toast-container {
+    top: 70px; /* 为移动端标题留出空间 */
+    left: 10px;
+    right: 10px;
+    transform: none;
+    max-width: calc(100% - 20px);
+  }
+
+  .toast {
+    max-width: 100%;
+    font-size: 0.9em;
+    padding: 12px 15px;
+  }
+}

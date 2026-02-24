@@ -1052,11 +1052,65 @@ function updateStatus(message) {
   document.getElementById('statusBox').textContent = message;
 }
 
+// Toast 提示函数
+function showToast(message, type = 'info', duration = 2000) {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+
+  // 创建 toast 元素
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+
+  // 设置图标
+  const iconMap = {
+    success: '✓',
+    warning: '⚠',
+    error: '✕',
+    info: 'ℹ',
+  };
+
+  toast.innerHTML = `
+    <span class="toast-icon">${iconMap[type] || 'ℹ'}</span>
+    <span class="toast-message">${message}</span>
+  `;
+
+  // 添加到容器
+  container.appendChild(toast);
+
+  // 点击消除
+  toast.addEventListener('click', () => removeToast(toast));
+
+  // 自动消除
+  toast._timeoutId = setTimeout(() => removeToast(toast), duration);
+}
+
+// 移除 Toast 函数
+function removeToast(toast) {
+  if (!toast) return;
+
+  // 清除 timeout
+  if (toast._timeoutId) {
+    clearTimeout(toast._timeoutId);
+  }
+
+  // 添加移除动画
+  toast.classList.add('removing');
+
+  // 等待动画完成后移除元素
+  setTimeout(() => {
+    if (toast.parentElement) {
+      toast.parentElement.removeChild(toast);
+    }
+  }, 300);
+}
+
 // 语音播报函数
 function speak(text) {
   // 检查语音合成 API 是否可用
   if (!synth) {
-    console.log('语音播报不可用:', text);
+    console.log('语音播报不可用（浏览器不支持 Speech Synthesis API）:', text);
+    // 不支持语音，显示 Toast 提示
+    showToast(`🔔 ${text}`, 'info');
     return;
   }
 
@@ -1070,9 +1124,17 @@ function speak(text) {
     utterance.pitch = 1.0; // 音调
     utterance.volume = 1.0; // 音量
 
+    // 监听播报失败事件
+    utterance.onerror = (event) => {
+      console.error('语音播报出错:', event.error);
+      showToast(`🔔 ${text}`, 'warning');
+    };
+
     synth.speak(utterance);
   } catch (error) {
-    console.error('语音播报失败:', error);
+    console.error('语音播报异常:', error);
+    // 异常时显示 Toast 提示
+    showToast(`🔔 ${text}`, 'warning');
   }
 }
 
@@ -1086,11 +1148,14 @@ function initEngineSound() {
       // 如果 AudioContext 被挂起（iOS 常见），立即 resume
       if (audioContext.state === 'suspended') {
         console.log('⚠️ AudioContext 被挂起，尝试 resume...');
-        audioContext.resume().then(() => {
-          console.log('✅ AudioContext 已 resume');
-        }).catch(err => {
-          console.error('❌ Resume 失败:', err);
-        });
+        audioContext
+          .resume()
+          .then(() => {
+            console.log('✅ AudioContext 已 resume');
+          })
+          .catch((err) => {
+            console.error('❌ Resume 失败:', err);
+          });
       }
     } catch (error) {
       console.error('❌ AudioContext 创建失败:', error);
@@ -1887,7 +1952,7 @@ function initVirtualJoystick() {
       btn.style.background = 'rgba(0, 0, 0, 0.6)';
     });
 
-    btn.addEventListener('mouseleave', (e) => {
+    btn.addEventListener('mouseleave', () => {
       keyState[key] = false;
       btn.style.background = 'rgba(0, 0, 0, 0.6)';
     });
