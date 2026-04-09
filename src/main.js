@@ -3,6 +3,76 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 
+// ========== 加载进度条控制 ==========
+const loadingStages = [
+  { id: 'world',     percent: 10, stepId: 'step-world',     text: '🌍 正在创建世界...' },
+  { id: 'roads',     percent: 30, stepId: 'step-roads',     text: '🛣️ 铺设道路网络...' },
+  { id: 'buildings', percent: 55, stepId: 'step-buildings', text: '🏙️ 建造婚礼城市...' },
+  { id: 'ferrari',   percent: 75, stepId: 'step-ferrari',   text: '🏎️ 法拉利458加载中...' },
+  { id: 'ready',     percent: 100, stepId: 'step-ready',    text: '✨ 一切准备就绪！' },
+];
+let _loadingCurrentPercent = 0;
+let _loadingRafId = null;
+
+function setLoadingProgress(stageId) {
+  const stage = loadingStages.find((s) => s.id === stageId);
+  if (!stage) return;
+
+  const fill = document.getElementById('loadingBarFill');
+  const glow = document.getElementById('loadingBarGlow');
+  const pct = document.getElementById('loadingPercent');
+  const stageText = document.getElementById('loadingStageText');
+
+  // 更新文案（带重新触发动画）
+  if (stageText) {
+    stageText.style.animation = 'none';
+    stageText.offsetHeight; // reflow
+    stageText.style.animation = '';
+    stageText.textContent = stage.text;
+  }
+
+  // 平滑滚动进度数值
+  const targetPercent = stage.percent;
+  if (_loadingRafId) cancelAnimationFrame(_loadingRafId);
+
+  function animatePercent() {
+    if (_loadingCurrentPercent < targetPercent) {
+      _loadingCurrentPercent = Math.min(_loadingCurrentPercent + 1, targetPercent);
+      if (pct) pct.textContent = `${_loadingCurrentPercent}%`;
+      _loadingRafId = requestAnimationFrame(animatePercent);
+    }
+  }
+  animatePercent();
+
+  // 更新进度条宽度
+  if (fill) fill.style.width = `${targetPercent}%`;
+  if (glow) glow.style.width = `${targetPercent}%`;
+
+  // 更新步骤图标状态
+  loadingStages.forEach((s) => {
+    const el = document.getElementById(s.stepId);
+    if (!el) return;
+    if (s.percent < stage.percent) {
+      el.classList.remove('active');
+      el.classList.add('done');
+    } else if (s.id === stageId) {
+      el.classList.remove('done');
+      el.classList.add('active');
+    } else {
+      el.classList.remove('active', 'done');
+    }
+  });
+}
+
+function hideLoadingScreen() {
+  const screen = document.getElementById('loadingScreen');
+  if (!screen) return;
+  screen.classList.add('fade-out');
+  setTimeout(() => {
+    screen.style.display = 'none';
+  }, 800);
+}
+
 // ========== 全局变量 ==========
 let scene, camera, renderer, controls;
 let buildings = [];
@@ -48,10 +118,19 @@ function detectMobile() {
   return isMobile;
 }
 
+// 小工具：延迟 ms 毫秒
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 // ========== Three.js 初始化 ==========
-function initThreeJS() {
+async function initThreeJS() {
   detectMobile();
   const container = document.getElementById('canvas-container');
+
+  // 开始加载：世界创建
+  setLoadingProgress('world');
+  await delay(600);
 
   // 场景设置
   scene = new THREE.Scene();
@@ -102,9 +181,8 @@ function initThreeJS() {
   directionalLight.shadow.camera.bottom = -150;
   scene.add(directionalLight);
 
-  // 创建场景
-  createCityScene();
-  createVehicle();
+  // 创建场景（分阶段汇报进度）
+  await createCityScene();
   createBalloons();
 
   // 处理窗口大小变化
@@ -112,10 +190,13 @@ function initThreeJS() {
 
   // 开始渲染
   animate();
+
+  // 加载法拉利（异步，进度由 createVehicle 内部控制）
+  createVehicle();
 }
 
 // ========== 创建城市场景 ==========
-function createCityScene() {
+async function createCityScene() {
   // 地面 - 扩大范围
   const groundGeometry = new THREE.PlaneGeometry(600, 600);
   const groundMaterial = new THREE.MeshLambertMaterial({
@@ -127,10 +208,14 @@ function createCityScene() {
   scene.add(ground);
 
   // 道路
+  setLoadingProgress('roads');
   createRoads();
+  await delay(700);
 
   // 建筑物
+  setLoadingProgress('buildings');
   createBuildings();
+  await delay(800);
 
   // 天空盒
   createSkybox();
@@ -383,6 +468,9 @@ function createVehicle() {
   scene.add(carGroup);
   car = carGroup;
 
+  // 汇报进度：法拉利加载中
+  setLoadingProgress('ferrari');
+
   // 使用GLTFLoader加载法拉利458模型
   const loader = new GLTFLoader();
 
@@ -394,8 +482,8 @@ function createVehicle() {
   dracoLoader.setDecoderConfig({ type: 'js' });
   loader.setDRACOLoader(dracoLoader);
 
-  // 从Three.js的官方CDN加载模型
-  const modelUrl = 'https://threejs.org/examples/models/gltf/ferrari.glb';
+  // 从本地加载模型（public/ferrari.glb）
+  const modelUrl = './ferrari.glb';
 
   loader.load(
     modelUrl,
@@ -420,13 +508,26 @@ function createVehicle() {
 
       // 让车辆可见
       carGroup.visible = true;
+
+      // 法拉利加载成功，完成加载
+      _finishLoading();
     },
     undefined,
     () => {
       // 加载失败时使用备用的简单车辆
       createFallbackVehicle(carGroup);
+      // 备用车辆也算加载完成
+      _finishLoading();
     }
   );
+}
+
+// 完成加载：显示"准备完成"再隐藏加载屏
+function _finishLoading() {
+  setLoadingProgress('ready');
+  setTimeout(() => {
+    hideLoadingScreen();
+  }, 1200);
 }
 
 // 备用的简单车辆模型（如果法拉利加载失败）
@@ -1731,6 +1832,77 @@ function onArrival() {
   showDestinationInfo();
 }
 
+// ========== 弹窗轮播控制器 ==========
+// key: carouselId  value: { index, timer, total }
+const _carousels = {};
+
+function initCarousel(carouselEl) {
+  const id = carouselEl.id;
+  if (!id) return;
+
+  const track = carouselEl.querySelector('.carousel-track');
+  const slides = carouselEl.querySelectorAll('.carousel-slide');
+  const dotsWrap = carouselEl.querySelector('.carousel-dots');
+  const prevBtn = carouselEl.querySelector('.carousel-prev');
+  const nextBtn = carouselEl.querySelector('.carousel-next');
+  const total = slides.length;
+
+  if (total === 0) return;
+
+  // 生成指示点
+  dotsWrap.innerHTML = '';
+  slides.forEach((_, i) => {
+    const dot = document.createElement('span');
+    dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => goTo(i));
+    dotsWrap.appendChild(dot);
+  });
+
+  let current = 0;
+
+  function goTo(idx) {
+    current = (idx + total) % total;
+    track.style.transform = `translateX(-${current * 100}%)`;
+    dotsWrap.querySelectorAll('.carousel-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === current);
+    });
+    _carousels[id].index = current;
+  }
+
+  // 按钮事件（阻止冒泡，避免触发 modal 遮罩关闭）
+  prevBtn.addEventListener('click', (e) => { e.stopPropagation(); goTo(current - 1); });
+  nextBtn.addEventListener('click', (e) => { e.stopPropagation(); goTo(current + 1); });
+
+  // 触摸滑动支持
+  let touchStartX = 0;
+  carouselEl.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  carouselEl.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 40) goTo(current + (dx < 0 ? 1 : -1));
+  }, { passive: true });
+
+  // 先初始化记录（goTo 里会用到）
+  _carousels[id] = { index: 0, timer: null, total };
+
+  // 初始化到第 0 张（无动画）
+  track.style.transition = 'none';
+  goTo(0);
+  // 恢复过渡
+  requestAnimationFrame(() => { track.style.transition = ''; });
+
+  // 自动播放（3s 切换）
+  // const timer = setInterval(() => goTo(current + 1), 3000); // 暂停自动轮播
+const timer = null;
+  _carousels[id].timer = timer;
+}
+
+function destroyCarousel(carouselEl) {
+  const id = carouselEl && carouselEl.id;
+  if (!id || !_carousels[id]) return;
+  clearInterval(_carousels[id].timer);
+  delete _carousels[id];
+}
+
 // 显示目的地信息弹窗
 function showDestinationInfo(destinationType = null) {
   // 使用传入的类型或默认使用selectedDestination
@@ -1777,6 +1949,10 @@ function showDestinationInfo(destinationType = null) {
   // 显示弹窗
   modal.style.display = 'flex';
 
+  // 启动轮播
+  const carouselEl = modal.querySelector('.carousel');
+  if (carouselEl) initCarousel(carouselEl);
+
   // 点击遮罩关闭
   modal.onclick = (e) => {
     if (e.target === modal) {
@@ -1804,6 +1980,10 @@ window.closeModal = function (destinationType) {
 
   const modal = document.getElementById(modalId);
   if (!modal) return;
+
+  // 销毁轮播
+  const carouselEl = modal.querySelector('.carousel');
+  destroyCarousel(carouselEl);
 
   modal.classList.add('closing');
   setTimeout(() => {

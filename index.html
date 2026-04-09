@@ -18,13 +18,14 @@
         margin: 0;
         padding: 0;
         box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
       }
       html {
         width: 100%;
         height: 100%;
       }
       body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         overflow: hidden;
         background: #000;
         width: 100%;
@@ -47,11 +48,72 @@
     </style>
   </head>
   <body>
+    <!-- 加载进度条 -->
+    <div id="loadingScreen">
+      <div class="loading-bg"></div>
+      <div class="loading-container">
+        <!-- 标题区域 -->
+        <div class="loading-title">
+          <div class="loading-rings">
+            <div class="ring ring-1"></div>
+            <div class="ring ring-2"></div>
+            <div class="ring ring-3"></div>
+            <div class="loading-heart">💒</div>
+          </div>
+          <h1 class="loading-heading">婚礼导航</h1>
+          <p class="loading-subtitle">正在为您准备一段甜蜜的旅程</p>
+        </div>
+
+        <!-- 进度条区域 -->
+        <div class="loading-progress-area">
+          <div class="loading-stage-text" id="loadingStageText">
+            初始化中...
+          </div>
+          <div class="loading-bar-wrap">
+            <div class="loading-bar-track">
+              <div class="loading-bar-fill" id="loadingBarFill"></div>
+              <div class="loading-bar-glow" id="loadingBarGlow"></div>
+            </div>
+            <div class="loading-percent" id="loadingPercent">0%</div>
+          </div>
+          <div class="loading-steps">
+            <div class="loading-step" id="step-world">
+              <span class="step-icon">🌍</span>
+              <span class="step-label">世界创建</span>
+            </div>
+            <div class="loading-step" id="step-roads">
+              <span class="step-icon">🛣️</span>
+              <span class="step-label">道路铺设</span>
+            </div>
+            <div class="loading-step" id="step-buildings">
+              <span class="step-icon">🏙️</span>
+              <span class="step-label">城市建造</span>
+            </div>
+            <div class="loading-step" id="step-ferrari">
+              <span class="step-icon">🏎️</span>
+              <span class="step-label">法拉利加载</span>
+            </div>
+            <div class="loading-step" id="step-ready">
+              <span class="step-icon">✨</span>
+              <span class="step-label">准备完成</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 底部装饰 -->
+        <div class="loading-footer">
+          <span>💍</span>
+          <span>用爱驾驭每一段旅程</span>
+          <span>💍</span>
+        </div>
+      </div>
+    </div>
+
     <div id="canvas-container"></div>
 
     <div class="ui-overlay">
       <div class="header">
-        <h1>💒 欢迎来到xx的婚礼导航</h1>
+        <h1>💒 欢迎来到王莹&李端阳的婚礼</h1>
       </div>
 
       <div style="display: flex; gap: 30px; align-items: flex-start">
@@ -72,7 +134,8 @@
 
           <div class="control-group">
             <label for="destinationSelect">选择目的地</label>
-              <label for="destinationSelect"></label><select id="destinationSelect">
+            <label for="destinationSelect"></label
+            ><select id="destinationSelect">
               <option value="">-- 请选择目的地 --</option>
               <option value="wedding">💒 婚礼现场</option>
               <option value="groom">🤵 新郎家</option>
@@ -123,18 +186,95 @@
         <!-- LED滚动屏幕 -->
         <div class="led-screen">
           <div class="led-text">
-            <span class="led-content">💒 执子之手，与子偕老 · 离百年好合还有XX年XX天 💒</span>
-            <span class="led-content">💒 执子之手，与子偕老 · 离百年好合还有XX年XX天 💒</span>
+            <span class="led-content">
+              💒 执子之手，与子偕老 · 离百年好合还有XX年XX天 💒
+            </span>
+            <span class="led-content"
+              >💒 执子之手，与子偕老 · 离百年好合还有XX年XX天 💒</span
+            >
           </div>
         </div>
 
         <!-- 主体内容 -->
         <div class="modal-main">
-          <!-- 左侧：新人合照 -->
+          <!-- 左侧：轮播图 -->
           <div class="modal-photo">
-            <div class="photo-placeholder">
-              <span>👰🤵</span>
-              <p>新人合照</p>
+            <div class="carousel" id="carousel-wedding">
+              <div class="carousel-track">
+                <div class="carousel-slide">
+                  <img
+                    src="./wedding-photos/wedding/1.webp"
+                    alt="婚礼照片1"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="carousel-slide">
+                  <img
+                    src="./wedding-photos/wedding/2.webp"
+                    alt="婚礼照片2"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="carousel-slide">
+                  <img
+                    src="./wedding-photos/wedding/3.webp"
+                    alt="婚礼照片3"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="carousel-slide">
+                  <img
+                    src="./wedding-photos/wedding/4.webp"
+                    alt="婚礼照片4"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="carousel-slide">
+                  <img
+                    src="./wedding-photos/wedding/5.webp"
+                    alt="婚礼照片5"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="carousel-slide">
+                  <img
+                    src="./wedding-photos/wedding/6.webp"
+                    alt="婚礼照片6"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="carousel-slide">
+                  <img
+                    src="./wedding-photos/wedding/7.webp"
+                    alt="婚礼照片7"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="carousel-slide">
+                  <img
+                    src="./wedding-photos/wedding/8.webp"
+                    alt="婚礼照片8"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="carousel-slide">
+                  <img
+                    src="./wedding-photos/wedding/9.webp"
+                    alt="婚礼照片9"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="carousel-slide">
+                  <img
+                    src="./wedding-photos/wedding/10.webp"
+                    alt="婚礼照片10"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+              <div class="carousel-btn carousel-prev">‹</div>
+              <div class="carousel-btn carousel-next">›</div>
+              <div class="carousel-dots"></div>
             </div>
           </div>
 
@@ -142,24 +282,17 @@
           <div class="modal-info">
             <div class="info-title">
               <span class="info-icon">🎉</span>
-              <h2>婚礼宴席</h2>
+              <h2>婚礼地址</h2>
             </div>
 
             <div class="info-details">
               <div class="info-item">
                 <div class="info-label">
                   <span class="label-icon">📍</span>
-                  地点
-                </div>
-                <div class="info-value">香格里拉大酒店</div>
-              </div>
-
-              <div class="info-item">
-                <div class="info-label">
-                  <span class="label-icon">📅</span>
-                  时间
+                  时间&地点
                 </div>
                 <div class="info-value">2026年5月18日</div>
+                <div class="info-value">南阳市梅溪国际酒店</div>
               </div>
             </div>
 
@@ -177,18 +310,53 @@
         <!-- LED滚动屏幕 -->
         <div class="led-screen">
           <div class="led-text">
-            <span class="led-content">🤵 这是帅气的新郎，一个温柔体贴、幽默风趣的好男人 🤵</span>
-            <span class="led-content">🤵 这是帅气的新郎，一个温柔体贴、幽默风趣的好男人 🤵</span>
+            <span class="led-content"
+              >🤵 这是帅气的新郎，一个温柔体贴、幽默风趣的好男人 🤵</span
+            >
+            <span class="led-content"
+              >🤵 这是帅气的新郎，一个温柔体贴、幽默风趣的好男人 🤵</span
+            >
           </div>
         </div>
 
         <!-- 主体内容 -->
         <div class="modal-main">
-          <!-- 左侧：新郎照片 -->
+          <!-- 左侧：轮播图 -->
           <div class="modal-photo">
-            <div class="photo-placeholder">
-              <span>🤵</span>
-              <p>新郎照片</p>
+            <div class="carousel" id="carousel-groom">
+              <div class="carousel-track">
+                <div class="carousel-slide">
+                  <img
+                    src="./wedding-photos/groom/1.webp"
+                    alt="新郎照片1"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="carousel-slide">
+                  <img
+                    src="./wedding-photos/groom/2.webp"
+                    alt="新郎照片2"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="carousel-slide">
+                  <img
+                    src="./wedding-photos/groom/3.webp"
+                    alt="新郎照片3"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="carousel-slide">
+                  <img
+                    src="./wedding-photos/groom/4.webp"
+                    alt="新郎照片4"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+              <div class="carousel-btn carousel-prev">‹</div>
+              <div class="carousel-btn carousel-next">›</div>
+              <div class="carousel-dots"></div>
             </div>
           </div>
 
@@ -206,9 +374,7 @@
               <p>
                 从那天起，我们一起经历了无数个日夜，一起笑，一起哭，一起成长。
               </p>
-              <p>
-                你说你喜欢看日落，我便陪你看遍了城市的每一个角落的夕阳。
-              </p>
+              <p>你说你喜欢看日落，我便陪你看遍了城市的每一个角落的夕阳。</p>
               <p>
                 今天，我们终于要步入婚姻的殿堂，开启人生新的篇章。我承诺，会用一生来爱你、宠你、守护你。
               </p>
@@ -228,18 +394,81 @@
         <!-- LED滚动屏幕 -->
         <div class="led-screen">
           <div class="led-text">
-            <span class="led-content">👰 这是美丽的新娘，一个善良温柔、知书达理的好女孩 👰</span>
-            <span class="led-content">👰 这是美丽的新娘，一个善良温柔、知书达理的好女孩 👰</span>
+            <span class="led-content"
+              >👰 这是美丽的新娘，一个善良温柔、知书达理的好女孩 👰</span
+            >
+            <span class="led-content"
+              >👰 这是美丽的新娘，一个善良温柔、知书达理的好女孩 👰</span
+            >
           </div>
         </div>
 
         <!-- 主体内容 -->
         <div class="modal-main">
-          <!-- 左侧：新娘照片 -->
+          <!-- 左侧：轮播图 -->
           <div class="modal-photo">
-            <div class="photo-placeholder">
-              <span>👰</span>
-              <p>新娘照片</p>
+            <div class="carousel" id="carousel-bride">
+              <div class="carousel-track">
+                <div class="carousel-slide">
+                  <img
+                    src="./wedding-photos/bride/1.webp"
+                    alt="新娘照片1"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="carousel-slide">
+                  <img
+                    src="./wedding-photos/bride/2.webp"
+                    alt="新娘照片2"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="carousel-slide">
+                  <img
+                    src="./wedding-photos/bride/3.webp"
+                    alt="新娘照片3"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="carousel-slide">
+                  <img
+                    src="./wedding-photos/bride/4.webp"
+                    alt="新娘照片4"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="carousel-slide">
+                  <img
+                    src="./wedding-photos/bride/5.webp"
+                    alt="新娘照片5"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="carousel-slide">
+                  <img
+                    src="./wedding-photos/bride/6.webp"
+                    alt="新娘照片6"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="carousel-slide">
+                  <img
+                    src="./wedding-photos/bride/7.webp"
+                    alt="新娘照片7"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="carousel-slide">
+                  <img
+                    src="./wedding-photos/bride/8.webp"
+                    alt="新娘照片8"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+              <div class="carousel-btn carousel-prev">‹</div>
+              <div class="carousel-btn carousel-next">›</div>
+              <div class="carousel-dots"></div>
             </div>
           </div>
 
@@ -257,9 +486,7 @@
               <p>
                 我们一起走过春夏秋冬，你陪我看过最美的风景，也陪我度过最难的时光。
               </p>
-              <p>
-                你说你会一直陪着我，我便相信了。因为你的眼神，从不骗人。
-              </p>
+              <p>你说你会一直陪着我，我便相信了。因为你的眼神，从不骗人。</p>
               <p>
                 今天，我穿上洁白的婚纱，挽着你的手，走向幸福的未来。我愿与你携手共度余生，不离不弃。
               </p>
