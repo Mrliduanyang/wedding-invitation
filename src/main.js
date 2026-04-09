@@ -477,7 +477,7 @@ function createVehicle() {
   // 配置DRACOLoader（法拉利模型使用了Draco压缩）
   const dracoLoader = new DRACOLoader();
   dracoLoader.setDecoderPath(
-    '../node_modules/three/examples/jsm/libs/draco/gltf/'
+    './draco/gltf/'
   );
   dracoLoader.setDecoderConfig({ type: 'js' });
   loader.setDRACOLoader(dracoLoader);
