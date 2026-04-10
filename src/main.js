@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
+import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
+import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js';
 
 // ========== 加载进度条控制 ==========
 const loadingStages = [
@@ -200,7 +200,7 @@ async function createCityScene() {
   // 地面 - 扩大范围
   const groundGeometry = new THREE.PlaneGeometry(600, 600);
   const groundMaterial = new THREE.MeshLambertMaterial({
-    color: 0x90ee90,
+    color: 0x4cd964,  // 鲜亮翠绿色
   });
   const ground = new THREE.Mesh(groundGeometry, groundMaterial);
   ground.rotation.x = -Math.PI / 2;
@@ -301,102 +301,102 @@ function createBuildings() {
       destination: 'bride',
     },
 
-    // === 办公大楼（灰色系）===
-    { x: -150, z: -60, width: 25, depth: 25, height: 60, color: 0x808080 },
-    { x: -150, z: 60, width: 22, depth: 22, height: 55, color: 0x696969 },
-    { x: 150, z: -60, width: 24, depth: 24, height: 58, color: 0x778899 },
-    { x: 150, z: 60, width: 26, depth: 26, height: 52, color: 0x708090 },
+    // === 办公大楼（鲜亮蓝绿系）===
+    { x: -150, z: -60, width: 25, depth: 25, height: 60, color: 0x00d4ff },  // 天蓝
+    { x: -150, z: 60, width: 22, depth: 22, height: 55, color: 0x00e5cc },   // 青绿
+    { x: 150, z: -60, width: 24, depth: 24, height: 58, color: 0x5bc8ff },   // 浅蓝
+    { x: 150, z: 60, width: 26, depth: 26, height: 52, color: 0x00bfff },    // 深天蓝
 
-    // === 商业中心（蓝色系）===
-    { x: -60, z: -150, width: 30, depth: 20, height: 40, color: 0x4169e1 },
-    { x: 60, z: -150, width: 28, depth: 22, height: 42, color: 0x1e90ff },
-    { x: -60, z: 150, width: 32, depth: 18, height: 38, color: 0x00bfff },
-    { x: 60, z: 150, width: 26, depth: 24, height: 44, color: 0x87ceeb },
+    // === 商业中心（亮橙/黄系）===
+    { x: -60, z: -150, width: 30, depth: 20, height: 40, color: 0xff9500 },  // 橙色
+    { x: 60, z: -150, width: 28, depth: 22, height: 42, color: 0xffd000 },   // 金黄
+    { x: -60, z: 150, width: 32, depth: 18, height: 38, color: 0xff6b35 },   // 亮橙红
+    { x: 60, z: 150, width: 26, depth: 24, height: 44, color: 0xffaa00 },    // 琥珀
 
-    // === 住宅楼（暖色系）===
-    { x: -160, z: -130, width: 18, depth: 18, height: 35, color: 0xdaa520 },
-    { x: -160, z: -30, width: 20, depth: 20, height: 32, color: 0xcd853f },
-    { x: 160, z: -130, width: 18, depth: 18, height: 36, color: 0xbc8f8f },
-    { x: 160, z: 30, width: 21, depth: 21, height: 33, color: 0xa0522d },
+    // === 住宅楼（珊瑚/粉红系）===
+    { x: -160, z: -130, width: 18, depth: 18, height: 35, color: 0xff6eb4 }, // 粉红
+    { x: -160, z: -30, width: 20, depth: 20, height: 32, color: 0xff4d8b },  // 亮粉
+    { x: 160, z: -130, width: 18, depth: 18, height: 36, color: 0xff7eb3 },  // 浅粉
+    { x: 160, z: 30, width: 21, depth: 21, height: 33, color: 0xff5fa0 },    // 玫瑰粉
 
     // === 中心区域建筑 ===
     // 左下街区 (-100到0, -100到0)
-    { x: -60, z: -60, width: 20, depth: 20, height: 48, color: 0x9370db },
-    { x: -70, z: -30, width: 18, depth: 18, height: 40, color: 0x9f8faf },
-    { x: -45, z: -45, width: 14, depth: 14, height: 32, color: 0x9f7faf },
-    { x: -20, z: -50, width: 13, depth: 13, height: 28, color: 0x8b6f9b },
+    { x: -60, z: -60, width: 20, depth: 20, height: 48, color: 0xff6ec7 },   // 亮玫粉
+    { x: -70, z: -30, width: 18, depth: 18, height: 40, color: 0xffb347 },   // 鲜橙黄
+    { x: -45, z: -45, width: 14, depth: 14, height: 32, color: 0xff5fa0 },   // 玫瑰粉
+    { x: -20, z: -50, width: 13, depth: 13, height: 28, color: 0xffd966 },   // 亮黄
 
     // 右下街区 (0到100, -100到0)
-    { x: 60, z: -60, width: 22, depth: 22, height: 46, color: 0x8a2be2 },
-    { x: 30, z: -70, width: 17, depth: 17, height: 38, color: 0x9370db },
-    { x: 70, z: -30, width: 19, depth: 19, height: 42, color: 0x7b68ee },
-    { x: 20, z: -50, width: 14, depth: 14, height: 29, color: 0x8b6fbb },
+    { x: 60, z: -60, width: 22, depth: 22, height: 46, color: 0x4dd9ff },    // 天蓝（浅亮）
+    { x: 30, z: -70, width: 17, depth: 17, height: 38, color: 0x5ef6ff },    // 亮青蓝
+    { x: 70, z: -30, width: 19, depth: 19, height: 42, color: 0x40d4ff },    // 浅蓝
+    { x: 20, z: -50, width: 14, depth: 14, height: 29, color: 0x80eaff },    // 淡青
 
     // 左上街区 (-100到0, 0到100)
-    { x: -60, z: 60, width: 21, depth: 21, height: 44, color: 0x9932cc },
-    { x: -30, z: 70, width: 16, depth: 16, height: 36, color: 0x8b008b },
-    { x: -20, z: 50, width: 13, depth: 13, height: 30, color: 0x9b3bb0 },
+    { x: -60, z: 60, width: 21, depth: 21, height: 44, color: 0x69f0ae },    // 薄荷绿
+    { x: -30, z: 70, width: 16, depth: 16, height: 36, color: 0x00e676 },    // 亮绿
+    { x: -20, z: 50, width: 13, depth: 13, height: 30, color: 0x76ff03 },    // 草绿
 
     // 右上街区 (0到100, 0到100)
-    { x: 30, z: 70, width: 17, depth: 17, height: 37, color: 0xda70d6 },
-    { x: 70, z: 30, width: 19, depth: 19, height: 43, color: 0xc71585 },
-    { x: 45, z: 45, width: 15, depth: 15, height: 35, color: 0xd465dd },
+    { x: 30, z: 70, width: 17, depth: 17, height: 37, color: 0xffea00 },     // 亮黄
+    { x: 70, z: 30, width: 19, depth: 19, height: 43, color: 0xff6d00 },     // 深橙
+    { x: 45, z: 45, width: 15, depth: 15, height: 35, color: 0xff3d00 },     // 朱红
 
     // === 小型建筑（填充街区）===
     // 南边街区
-    { x: -130, z: -150, width: 15, depth: 15, height: 28, color: 0xa9a9a9 },
-    { x: -30, z: -150, width: 16, depth: 16, height: 30, color: 0xb0b0b0 },
-    { x: -130, z: -165, width: 14, depth: 14, height: 24, color: 0x969696 },
-    { x: 30, z: -165, width: 13, depth: 13, height: 22, color: 0xa8a8a8 },
+    { x: -130, z: -150, width: 15, depth: 15, height: 28, color: 0x40c4ff }, // 浅天蓝
+    { x: -30, z: -150, width: 16, depth: 16, height: 30, color: 0x18ffff },  // 亮青
+    { x: -130, z: -165, width: 14, depth: 14, height: 24, color: 0x64ffda },  // 薄荷青
+    { x: 30, z: -165, width: 13, depth: 13, height: 22, color: 0xb2ff59 },   // 黄绿
 
     // 北边街区
-    { x: -130, z: 150, width: 15, depth: 15, height: 29, color: 0xa0a0a0 },
-    { x: 130, z: 150, width: 14, depth: 14, height: 31, color: 0x888888 },
-    { x: -70, z: 165, width: 13, depth: 13, height: 25, color: 0x9a9a9a },
-    { x: 70, z: 165, width: 14, depth: 14, height: 23, color: 0xaaaaaa },
+    { x: -130, z: 150, width: 15, depth: 15, height: 29, color: 0xeeff41 },  // 柠檬黄
+    { x: 130, z: 150, width: 14, depth: 14, height: 31, color: 0xffd740 },   // 金黄
+    { x: -70, z: 165, width: 13, depth: 13, height: 25, color: 0xffab40 },   // 橙黄
+    { x: 70, z: 165, width: 14, depth: 14, height: 23, color: 0xff6e40 },    // 橙红
 
     // 西边街区
-    { x: -150, z: -130, width: 16, depth: 16, height: 34, color: 0x2f4f4f },
-    { x: -150, z: -30, width: 18, depth: 18, height: 36, color: 0x556b2f },
-    { x: -150, z: 70, width: 15, depth: 15, height: 32, color: 0x483d8b },
-    { x: -165, z: -70, width: 14, depth: 14, height: 28, color: 0x3f5f5f },
+    { x: -150, z: -130, width: 16, depth: 16, height: 34, color: 0x40ffb3 }, // 翠青
+    { x: -150, z: -30, width: 18, depth: 18, height: 36, color: 0x00e5ff },  // 亮青
+    { x: -150, z: 70, width: 15, depth: 15, height: 32, color: 0x84ffff },   // 淡青
+    { x: -165, z: -70, width: 14, depth: 14, height: 28, color: 0x1de9b6 },  // 碧绿
 
     // 东边街区
-    { x: 150, z: -130, width: 17, depth: 17, height: 35, color: 0x8b4513 },
-    { x: 150, z: 130, width: 16, depth: 16, height: 37, color: 0x4b0082 },
-    { x: 165, z: -70, width: 14, depth: 14, height: 31, color: 0x7a5230 },
-    { x: 165, z: 70, width: 15, depth: 15, height: 29, color: 0x5a7c1a },
+    { x: 150, z: -130, width: 17, depth: 17, height: 35, color: 0xff80ab },  // 粉红
+    { x: 150, z: 130, width: 16, depth: 16, height: 37, color: 0xffb3c6 },   // 浅粉
+    { x: 165, z: -70, width: 14, depth: 14, height: 31, color: 0xffda79 },   // 杏黄
+    { x: 165, z: 70, width: 15, depth: 15, height: 29, color: 0xffd166 },    // 蜜黄
 
     // === 街角建筑 ===
     // 四个角的主要建筑
-    { x: -130, z: -130, width: 18, depth: 18, height: 40, color: 0x5f9ea0 },
-    { x: 130, z: -130, width: 19, depth: 19, height: 42, color: 0x20b2aa },
-    { x: -130, z: 130, width: 17, depth: 17, height: 38, color: 0x48d1cc },
-    { x: 130, z: 130, width: 20, depth: 20, height: 41, color: 0x40e0d0 },
+    { x: -130, z: -130, width: 18, depth: 18, height: 40, color: 0x00e5ff }, // 亮青
+    { x: 130, z: -130, width: 19, depth: 19, height: 42, color: 0x00bcd4 },  // 青色
+    { x: -130, z: 130, width: 17, depth: 17, height: 38, color: 0x26c6da },  // 青蓝
+    { x: 130, z: 130, width: 20, depth: 20, height: 41, color: 0x00acc1 },   // 深青
 
     // 左侧街区建筑
-    { x: -130, z: -60, width: 16, depth: 16, height: 30, color: 0xc0c0c0 },
-    { x: -130, z: 60, width: 17, depth: 17, height: 32, color: 0xd3d3d3 },
-    { x: -165, z: -30, width: 13, depth: 13, height: 26, color: 0xb8b8b8 },
-    { x: -165, z: 30, width: 14, depth: 14, height: 28, color: 0xcccccc },
+    { x: -130, z: -60, width: 16, depth: 16, height: 30, color: 0xff5722 },  // 深橙
+    { x: -130, z: 60, width: 17, depth: 17, height: 32, color: 0xff7043 },   // 橙色
+    { x: -165, z: -30, width: 13, depth: 13, height: 26, color: 0xffa726 },  // 亮橙
+    { x: -165, z: 30, width: 14, depth: 14, height: 28, color: 0xffca28 },   // 金黄
 
     // 右侧街区建筑
-    { x: 130, z: -60, width: 15, depth: 15, height: 31, color: 0xdcdcdc },
-    { x: 130, z: 60, width: 18, depth: 18, height: 29, color: 0xc8c8c8 },
-    { x: 165, z: -30, width: 13, depth: 13, height: 27, color: 0xe0e0e0 },
-    { x: 165, z: 30, width: 14, depth: 14, height: 25, color: 0xd0d0d0 },
+    { x: 130, z: -60, width: 15, depth: 15, height: 31, color: 0x5ce8a4 },   // 薄荷绿
+    { x: 130, z: 60, width: 18, depth: 18, height: 29, color: 0x5de8d9 },    // 青绿
+    { x: 165, z: -30, width: 13, depth: 13, height: 27, color: 0xf48fb1 },   // 粉色
+    { x: 165, z: 30, width: 14, depth: 14, height: 25, color: 0xf06292 },    // 玫红
 
     // 南侧街区建筑
-    { x: -60, z: -130, width: 14, depth: 14, height: 25, color: 0xffa07a },
-    { x: 60, z: -130, width: 15, depth: 15, height: 27, color: 0xfa8072 },
-    { x: -30, z: -165, width: 12, depth: 12, height: 23, color: 0xffa500 },
-    { x: 30, z: -165, width: 13, depth: 13, height: 24, color: 0xff8c69 },
+    { x: -60, z: -130, width: 14, depth: 14, height: 25, color: 0xff4081 },  // 粉红
+    { x: 60, z: -130, width: 15, depth: 15, height: 27, color: 0xff1744 },   // 亮红
+    { x: -30, z: -165, width: 12, depth: 12, height: 23, color: 0xff6b35 },  // 橙红
+    { x: 30, z: -165, width: 13, depth: 13, height: 24, color: 0xff9100 },   // 橙色
 
     // 北侧街区建筑
-    { x: -60, z: 130, width: 16, depth: 16, height: 26, color: 0xe9967a },
-    { x: 60, z: 130, width: 14, depth: 14, height: 28, color: 0xf08080 },
-    { x: -30, z: 165, width: 12, depth: 12, height: 24, color: 0xffa07a },
-    { x: 30, z: 165, width: 13, depth: 13, height: 25, color: 0xff7f50 },
+    { x: -60, z: 130, width: 16, depth: 16, height: 26, color: 0x69f0ae },   // 薄荷绿
+    { x: 60, z: 130, width: 14, depth: 14, height: 28, color: 0xb2ff59 },    // 黄绿
+    { x: -30, z: 165, width: 12, depth: 12, height: 24, color: 0xccff90 },   // 浅绿
+    { x: 30, z: 165, width: 13, depth: 13, height: 25, color: 0xf4ff81 },    // 嫩黄
   ];
 
   positions.forEach((pos, idx) => {
@@ -1873,9 +1873,26 @@ function initCarousel(carouselEl) {
   prevBtn.addEventListener('click', (e) => { e.stopPropagation(); goTo(current - 1); });
   nextBtn.addEventListener('click', (e) => { e.stopPropagation(); goTo(current + 1); });
 
-  // 触摸滑动支持
+  // 触摸滑动支持（阻止横滑触发浏览器页面返回）
   let touchStartX = 0;
-  carouselEl.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  let touchStartY = 0;
+  let isHorizontalSwipe = false;
+  carouselEl.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    isHorizontalSwipe = false;
+  }, { passive: true });
+  carouselEl.addEventListener('touchmove', (e) => {
+    const dx = e.touches[0].clientX - touchStartX;
+    const dy = e.touches[0].clientY - touchStartY;
+    // 判断为横向滑动时阻止默认行为（防止触发页面返回/前进手势）
+    if (!isHorizontalSwipe && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 5) {
+      isHorizontalSwipe = true;
+    }
+    if (isHorizontalSwipe) {
+      e.preventDefault();
+    }
+  }, { passive: false });
   carouselEl.addEventListener('touchend', (e) => {
     const dx = e.changedTouches[0].clientX - touchStartX;
     if (Math.abs(dx) > 40) goTo(current + (dx < 0 ? 1 : -1));
@@ -1890,9 +1907,8 @@ function initCarousel(carouselEl) {
   // 恢复过渡
   requestAnimationFrame(() => { track.style.transition = ''; });
 
-  // 自动播放（3s 切换）
-  // const timer = setInterval(() => goTo(current + 1), 3000); // 暂停自动轮播
-const timer = null;
+  // 自动播放（5s 切换）
+  const timer = setInterval(() => goTo(current + 1), 5000);
   _carousels[id].timer = timer;
 }
 
@@ -1953,6 +1969,34 @@ function showDestinationInfo(destinationType = null) {
   const carouselEl = modal.querySelector('.carousel');
   if (carouselEl) initCarousel(carouselEl);
 
+  // 阻止弹窗内横向滑动触发浏览器页面返回/前进手势
+  let _modalTouchStartX = 0;
+  let _modalTouchStartY = 0;
+  let _modalIsHorizontal = false;
+  function _onModalTouchStart(e) {
+    _modalTouchStartX = e.touches[0].clientX;
+    _modalTouchStartY = e.touches[0].clientY;
+    _modalIsHorizontal = false;
+  }
+  function _onModalTouchMove(e) {
+    const dx = e.touches[0].clientX - _modalTouchStartX;
+    const dy = e.touches[0].clientY - _modalTouchStartY;
+    if (!_modalIsHorizontal && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 5) {
+      _modalIsHorizontal = true;
+    }
+    if (_modalIsHorizontal) {
+      e.preventDefault();
+    }
+  }
+  modal.addEventListener('touchstart', _onModalTouchStart, { passive: true });
+  modal.addEventListener('touchmove', _onModalTouchMove, { passive: false });
+  // 存到 modal 上，关闭时解绑
+  modal._removeTouchGuard = () => {
+    modal.removeEventListener('touchstart', _onModalTouchStart);
+    modal.removeEventListener('touchmove', _onModalTouchMove);
+    delete modal._removeTouchGuard;
+  };
+
   // 点击遮罩关闭
   modal.onclick = (e) => {
     if (e.target === modal) {
@@ -1984,6 +2028,9 @@ window.closeModal = function (destinationType) {
   // 销毁轮播
   const carouselEl = modal.querySelector('.carousel');
   destroyCarousel(carouselEl);
+
+  // 解绑触摸防返回监听
+  if (modal._removeTouchGuard) modal._removeTouchGuard();
 
   modal.classList.add('closing');
   setTimeout(() => {
@@ -2101,3 +2148,4 @@ window.addEventListener('load', () => {
   });
 });
 
+showDestinationInfo('wedding')
