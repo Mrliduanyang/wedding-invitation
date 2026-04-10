@@ -2147,5 +2147,3 @@ window.addEventListener('load', () => {
     detectMobile();
   });
 });
-
-showDestinationInfo('wedding')
