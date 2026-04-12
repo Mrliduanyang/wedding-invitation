@@ -2621,4 +2621,3 @@ window.addEventListener("load", () => {
   });
 });
 
-showDestinationInfo("bride");
