@@ -104,6 +104,12 @@ let engineGainNode = null;
 let noiseGainNode = null;
 let isEnginePlaying = false;
 
+// ========== 烟花粒子系统 ==========
+let fireworksParticles = []; // 所有烟花粒子组
+let fireworksEnabled = false; // 是否启用烟花
+let fireworksLastLaunchTime = 0; // 上次发射时间
+const FIREWORKS_LAUNCH_INTERVAL = 400; // 发射间隔（毫秒）
+
 // 加减速系统
 let currentActualSpeed = 0; // 当前实际速度（从0开始）
 let targetSpeed = 0; // 目标速度
@@ -1146,6 +1152,9 @@ function startJourney() {
   if (currentTransport === 'drive') {
     setupKeyboardControls();
   }
+
+  // 启动烟花效果
+  enableFireworks();
 }
 
 function updateStatus(message) {
@@ -1605,6 +1614,386 @@ function startDeceleration() {
   targetSpeed = 0;
 }
 
+// ========== 烟花粒子系统实现 ==========
+
+// 烟花颜色主题（婚礼主题：金红粉紫）
+const FIREWORK_COLORS = [
+  0xff4444, // 红
+  0xff8800, // 橙
+  0xffcc00, // 金黄
+  0xff69b4, // 粉红
+  0xff1493, // 深粉
+  0xda70d6, // 兰花紫
+  0x9b59b6, // 紫
+  0xffffff, // 白
+  0x00ffcc, // 青绿
+  0x66ccff, // 浅蓝
+];
+
+/**
+ * 在指定位置发射一颗烟花
+ * @param {THREE.Vector3} position 发射位置（道路两侧）
+ */
+function launchFirework(position) {
+  // 随机选择爆炸颜色
+  const color = FIREWORK_COLORS[Math.floor(Math.random() * FIREWORK_COLORS.length)];
+  const accentColor = FIREWORK_COLORS[Math.floor(Math.random() * FIREWORK_COLORS.length)];
+
+  // ---- 阶段1：上升拖尾 ----
+  const trailCount = 12;
+  const trailPositions = new Float32Array(trailCount * 3);
+  for (let i = 0; i < trailCount; i++) {
+    trailPositions[i * 3] = position.x;
+    trailPositions[i * 3 + 1] = position.y;
+    trailPositions[i * 3 + 2] = position.z;
+  }
+  const trailGeometry = new THREE.BufferGeometry();
+  trailGeometry.setAttribute('position', new THREE.BufferAttribute(trailPositions.slice(), 3));
+  const trailMaterial = new THREE.PointsMaterial({
+    color: 0xffffaa,
+    size: 0.6,
+    transparent: true,
+    opacity: 1.0,
+    depthWrite: false,
+  });
+  const trail = new THREE.Points(trailGeometry, trailMaterial);
+  scene.add(trail);
+
+  // 上升速度：随机高度
+  const riseHeight = 40 + Math.random() * 20; // 爆炸高度
+  const riseSpeed = 0.8 + Math.random() * 0.5;
+
+  // ---- 阶段2：爆炸粒子 ----
+  const particleCount = 80 + Math.floor(Math.random() * 60);
+  const explosionPositions = new Float32Array(particleCount * 3);
+  const explosionVelocities = [];
+  const explosionColors = new Float32Array(particleCount * 3);
+
+  // 预先分配爆炸位置（在爆炸高度处）
+  const explodePos = new THREE.Vector3(
+    position.x + (Math.random() - 0.5) * 3,
+    position.y + riseHeight,
+    position.z + (Math.random() - 0.5) * 3
+  );
+
+  for (let i = 0; i < particleCount; i++) {
+    explosionPositions[i * 3] = explodePos.x;
+    explosionPositions[i * 3 + 1] = explodePos.y;
+    explosionPositions[i * 3 + 2] = explodePos.z;
+
+    // 球形随机速度（爆炸方向）
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    const speed = 0.3 + Math.random() * 0.6;
+    explosionVelocities.push({
+      x: Math.sin(phi) * Math.cos(theta) * speed,
+      y: Math.sin(phi) * Math.sin(theta) * speed * 0.8,
+      z: Math.sin(phi) * Math.sin(theta) * speed * 0.8 + Math.cos(phi) * speed,
+    });
+
+    // 颜色：主色 + 少量点缀色
+    const useAccent = Math.random() < 0.3;
+    const c = new THREE.Color(useAccent ? accentColor : color);
+    explosionColors[i * 3] = c.r;
+    explosionColors[i * 3 + 1] = c.g;
+    explosionColors[i * 3 + 2] = c.b;
+  }
+
+  const explosionGeometry = new THREE.BufferGeometry();
+  explosionGeometry.setAttribute('position', new THREE.BufferAttribute(explosionPositions.slice(), 3));
+  explosionGeometry.setAttribute('color', new THREE.BufferAttribute(explosionColors, 3));
+
+  const explosionMaterial = new THREE.PointsMaterial({
+    size: 0.8,
+    vertexColors: true,
+    transparent: true,
+    opacity: 1.0,
+    depthWrite: false,
+    sizeAttenuation: true,
+  });
+  const explosion = new THREE.Points(explosionGeometry, explosionMaterial);
+  scene.add(explosion);
+  explosion.visible = false; // 先隐藏，等上升结束后显示
+
+  // ---- 添加到粒子系统管理列表 ----
+  const fireworkData = {
+    trail,
+    trailMaterial,
+    explosion,
+    explosionMaterial,
+    explosionGeometry,
+    explosionVelocities,
+    explodePos,
+    riseHeight,
+    riseSpeed,
+    riseY: 0,       // 当前上升高度，从0开始
+    risePhase: true,
+    exploded: false,
+    lifetime: 0,
+    maxLifetime: 120, // 爆炸后存活帧数
+    position: position.clone(),
+  };
+  fireworksParticles.push(fireworkData);
+
+  // ---- 播放烟花音效（30% 概率，避免密集发射时音效堆叠过重）----
+  if (Math.random() < 0.3) {
+    playFireworkSound(riseSpeed, riseHeight);
+  }
+}
+
+/**
+ * 播放单颗烟花的音效：上升哨声 → 爆炸噰响
+ * 全部通过 Web Audio API 合成，无需外部文件
+ */
+function playFireworkSound(riseSpeed, riseHeight) {
+  if (!audioContext) return;
+  if (audioContext.state === 'suspended') return;
+
+  // 上升时长（与 riseHeight/riseSpeed 对应，约 = riseHeight/riseSpeed 帧 × 16ms）
+  const riseDuration = (riseHeight / riseSpeed) * 0.016;
+  const now = audioContext.currentTime;
+
+  // ---- 爆炸声（噪声冲击 + 低频砰击，在上升结束时触发）----
+  const explodeAt = now + riseDuration;
+
+  // 噪声爆炸冲击
+  const burstDuration = 0.6;
+  const bufSize = Math.floor(audioContext.sampleRate * burstDuration);
+  const noiseBuffer = audioContext.createBuffer(1, bufSize, audioContext.sampleRate);
+  const data = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < bufSize; i++) {
+    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, 2); // 指数衰减
+  }
+  const burstSource = audioContext.createBufferSource();
+  burstSource.buffer = noiseBuffer;
+
+  // 带通滤波让爆炸声更像真实烟花（去掉极低和极高频）
+  const burstFilter = audioContext.createBiquadFilter();
+  burstFilter.type = 'bandpass';
+  burstFilter.frequency.setValueAtTime(800, explodeAt);
+  burstFilter.Q.setValueAtTime(0.5, explodeAt);
+
+  const burstGain = audioContext.createGain();
+  burstGain.gain.setValueAtTime(0.25, explodeAt);
+  burstGain.gain.exponentialRampToValueAtTime(0.001, explodeAt + burstDuration);
+
+  burstSource.connect(burstFilter);
+  burstFilter.connect(burstGain);
+  burstGain.connect(audioContext.destination);
+  burstSource.start(explodeAt);
+  burstSource.stop(explodeAt + burstDuration);
+
+  // 低频砰击（给爆炸加厚重感）
+  const thumpOsc = audioContext.createOscillator();
+  const thumpGain = audioContext.createGain();
+  thumpOsc.type = 'sine';
+  thumpOsc.frequency.setValueAtTime(80, explodeAt);
+  thumpOsc.frequency.exponentialRampToValueAtTime(30, explodeAt + 0.3);
+  thumpGain.gain.setValueAtTime(0.3, explodeAt);
+  thumpGain.gain.exponentialRampToValueAtTime(0.001, explodeAt + 0.35);
+  thumpOsc.connect(thumpGain);
+  thumpGain.connect(audioContext.destination);
+  thumpOsc.start(explodeAt);
+  thumpOsc.stop(explodeAt + 0.4);
+}
+
+/**
+ * 每帧更新所有烟花粒子
+ */
+function updateFireworks() {
+  if (fireworksParticles.length === 0) return;
+
+  const toRemove = [];
+
+  fireworksParticles.forEach((fw, idx) => {
+    if (fw.risePhase) {
+      // ---- 上升阶段 ----
+      fw.riseY += fw.riseSpeed;
+
+      // 更新拖尾位置（在当前上升高度显示）
+      const pos = fw.trail.geometry.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const offset = (i / pos.count) * 3;
+        pos.setXYZ(
+          i,
+          fw.position.x + (Math.random() - 0.5) * 0.3,
+          fw.position.y + fw.riseY - offset,
+          fw.position.z + (Math.random() - 0.5) * 0.3
+        );
+      }
+      pos.needsUpdate = true;
+      fw.trailMaterial.opacity = Math.max(0, 1 - fw.riseY / fw.riseHeight * 0.3);
+
+      // 到达爆炸高度
+      if (fw.riseY >= fw.riseHeight) {
+        fw.risePhase = false;
+        fw.exploded = true;
+        scene.remove(fw.trail);
+        fw.trail.geometry.dispose();
+        fw.trailMaterial.dispose();
+        fw.explosion.visible = true;
+      }
+    } else if (fw.exploded) {
+      // ---- 爆炸扩散阶段 ----
+      fw.lifetime++;
+
+      const progress = fw.lifetime / fw.maxLifetime;
+      const gravity = 0.012;
+      const drag = 0.97;
+
+      const pos = fw.explosionGeometry.attributes.position;
+      const count = pos.count;
+
+      for (let i = 0; i < count; i++) {
+        const v = fw.explosionVelocities[i];
+        // 重力 + 阻力
+        v.y -= gravity;
+        v.x *= drag;
+        v.y *= drag;
+        v.z *= drag;
+
+        pos.setXYZ(
+          i,
+          pos.getX(i) + v.x,
+          pos.getY(i) + v.y,
+          pos.getZ(i) + v.z
+        );
+      }
+      pos.needsUpdate = true;
+
+      // 淡出
+      fw.explosionMaterial.opacity = Math.max(0, 1 - progress * progress);
+      // 粒子缩小
+      fw.explosionMaterial.size = 0.8 * (1 - progress * 0.5);
+
+      if (fw.lifetime >= fw.maxLifetime) {
+        toRemove.push(idx);
+      }
+    }
+  });
+
+  // 清理已结束的烟花
+  for (let i = toRemove.length - 1; i >= 0; i--) {
+    const fw = fireworksParticles[toRemove[i]];
+    if (fw.explosion.parent) scene.remove(fw.explosion);
+    fw.explosionGeometry.dispose();
+    fw.explosionMaterial.dispose();
+    fireworksParticles.splice(toRemove[i], 1);
+  }
+}
+
+/**
+ * 沿前方真实路线采样发射点，烟花位置跟着道路弯曲走。
+ * 自驾模式（无路线点）时退化为以当前车头方向直线估算。
+ */
+function triggerRoadFireworks() {
+  if (!car || !fireworksEnabled) return;
+
+  const now = Date.now();
+  if (now - fireworksLastLaunchTime < FIREWORKS_LAUNCH_INTERVAL) return;
+  fireworksLastLaunchTime = now;
+
+  const sideOffset = 11; // 距路中心的横向距离
+  const SLOTS      = 10; // 前方路段分为多少个候选槽
+  const fireCount  = 3 + Math.floor(Math.random() * 3); // 每次触发随机选 3~5 槽
+
+  // ---- 沿路线点采集候选发射点 ----
+  // 候选点数组：{ x, z, dirX, dirZ }，dirX/Z 为该点处路线的前进方向
+  const candidates = [];
+
+  const hasRoute =
+    currentRoutePoints.length > 0 && currentRouteIndex < currentRoutePoints.length;
+
+  if (hasRoute) {
+    // 打车/已生成路线：沿路线点向前最多 120 单位累积距离，均匀采样
+    const maxDist   = 120;
+    const slotSpan  = maxDist / SLOTS;
+    let   accumulated = 0;
+    let   ptIdx = currentRouteIndex;
+
+    // 当前起点：用车辆当前位置
+    let prevX = car.position.x;
+    let prevZ = car.position.z;
+
+    for (let slot = 0; slot < SLOTS && ptIdx < currentRoutePoints.length; slot++) {
+      // 目标累积距离：该槽中点 + 随机抖动
+      const targetDist = slotSpan * slot + slotSpan * (0.2 + Math.random() * 0.6);
+
+      // 沿路线前进直到超过 targetDist
+      while (ptIdx < currentRoutePoints.length && accumulated < targetDist) {
+        const np   = currentRoutePoints[ptIdx];
+        const segD = Math.hypot(np.x - prevX, np.z - prevZ);
+        if (accumulated + segD >= targetDist) {
+          // 在本段内插值到 targetDist
+          const t  = (targetDist - accumulated) / segD;
+          const sx = prevX + (np.x - prevX) * t;
+          const sz = prevZ + (np.z - prevZ) * t;
+          // 方向用本段
+          const len = segD || 1;
+          candidates.push({
+            x: sx, z: sz,
+            dirX: (np.x - prevX) / len,
+            dirZ: (np.z - prevZ) / len,
+          });
+          break;
+        }
+        accumulated += segD;
+        prevX = np.x;
+        prevZ = np.z;
+        ptIdx++;
+      }
+    }
+  }
+
+  // 若路线采样不足（自驾模式或路线末段），用车头方向直线补全
+  if (candidates.length < SLOTS) {
+    const carAngle = car.rotation.y;
+    const sinA = Math.sin(carAngle);
+    const cosA = Math.cos(carAngle);
+    const maxDist  = 120;
+    const slotSpan = maxDist / SLOTS;
+    for (let slot = candidates.length; slot < SLOTS; slot++) {
+      const fwd = slotSpan * slot + slotSpan * (0.2 + Math.random() * 0.6);
+      candidates.push({
+        x: car.position.x + sinA * fwd,
+        z: car.position.z + cosA * fwd,
+        dirX: sinA,
+        dirZ: cosA,
+      });
+    }
+  }
+
+  // ---- 随机选槽发射 ----
+  const chosen = candidates
+    .sort(() => Math.random() - 0.5)
+    .slice(0, fireCount);
+
+  chosen.forEach(({ x, z, dirX, dirZ }) => {
+    // 该点的左右方向（垂直于行进方向）
+    const jitter = (Math.random() - 0.5) * 3;
+    const off    = sideOffset + jitter;
+    // 左：dir 顺时针旋转 90° → (-dirZ, dirX)
+    launchFirework(new THREE.Vector3(x - dirZ * off, 1, z + dirX * off));
+    // 右：dir 逆时针旋转 90° → (dirZ, -dirX)
+    launchFirework(new THREE.Vector3(x + dirZ * off, 1, z - dirX * off));
+  });
+}
+
+/**
+ * 启动烟花效果（导航开始时调用）
+ */
+function enableFireworks() {
+  fireworksEnabled = true;
+  fireworksLastLaunchTime = 0;
+}
+
+/**
+ * 停止烟花效果（导航结束时调用）
+ */
+function disableFireworks() {
+  fireworksEnabled = false;
+}
+
 // ========== 动画循环 ==========
 function animate() {
   requestAnimationFrame(animate);
@@ -1764,6 +2153,12 @@ function animate() {
     }
   }
 
+  // 触发并更新烟花效果
+  if (isNavigating && fireworksEnabled) {
+    triggerRoadFireworks();
+  }
+  updateFireworks();
+
   // 更新气球
   balloons.forEach((balloon, idx) => {
     balloon.position.y += balloon.userData.speed * 0.01;
@@ -1816,6 +2211,9 @@ function onArrival() {
   };
   const destName = destinationNames[selectedDestination] || '目的地';
   speak(`已到达${destName}，祝您生活愉快`);
+
+  // 停止烟花效果
+  disableFireworks();
 
   // 停止引擎声音
   stopEngineSound();
@@ -2062,6 +2460,7 @@ window.testDestinationModals = function () {
 
 // 将showDestinationInfo暴露到全局，方便测试
 window.showDestinationInfo = showDestinationInfo;
+
 
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
