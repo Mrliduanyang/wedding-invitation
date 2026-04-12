@@ -1,15 +1,40 @@
-import * as THREE from 'three';
-import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
-import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
-import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js';
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 
 // ========== 加载进度条控制 ==========
 const loadingStages = [
-  { id: 'world',     percent: 10, stepId: 'step-world',     text: '🌍 正在创建世界...' },
-  { id: 'roads',     percent: 30, stepId: 'step-roads',     text: '🛣️ 铺设道路网络...' },
-  { id: 'buildings', percent: 55, stepId: 'step-buildings', text: '🏙️ 建造婚礼城市...' },
-  { id: 'ferrari',   percent: 75, stepId: 'step-ferrari',   text: '🏎️ 法拉利458加载中...' },
-  { id: 'ready',     percent: 100, stepId: 'step-ready',    text: '✨ 一切准备就绪！' },
+  {
+    id: "world",
+    percent: 10,
+    stepId: "step-world",
+    text: "🌍 正在创建世界...",
+  },
+  {
+    id: "roads",
+    percent: 30,
+    stepId: "step-roads",
+    text: "🛣️ 铺设道路网络...",
+  },
+  {
+    id: "buildings",
+    percent: 55,
+    stepId: "step-buildings",
+    text: "🏙️ 建造婚礼城市...",
+  },
+  {
+    id: "ferrari",
+    percent: 75,
+    stepId: "step-ferrari",
+    text: "🏎️ 法拉利458加载中...",
+  },
+  {
+    id: "ready",
+    percent: 100,
+    stepId: "step-ready",
+    text: "✨ 一切准备就绪！",
+  },
 ];
 let _loadingCurrentPercent = 0;
 let _loadingRafId = null;
@@ -18,16 +43,16 @@ function setLoadingProgress(stageId) {
   const stage = loadingStages.find((s) => s.id === stageId);
   if (!stage) return;
 
-  const fill = document.getElementById('loadingBarFill');
-  const glow = document.getElementById('loadingBarGlow');
-  const pct = document.getElementById('loadingPercent');
-  const stageText = document.getElementById('loadingStageText');
+  const fill = document.getElementById("loadingBarFill");
+  const glow = document.getElementById("loadingBarGlow");
+  const pct = document.getElementById("loadingPercent");
+  const stageText = document.getElementById("loadingStageText");
 
   // 更新文案（带重新触发动画）
   if (stageText) {
-    stageText.style.animation = 'none';
+    stageText.style.animation = "none";
     stageText.offsetHeight; // reflow
-    stageText.style.animation = '';
+    stageText.style.animation = "";
     stageText.textContent = stage.text;
   }
 
@@ -37,7 +62,10 @@ function setLoadingProgress(stageId) {
 
   function animatePercent() {
     if (_loadingCurrentPercent < targetPercent) {
-      _loadingCurrentPercent = Math.min(_loadingCurrentPercent + 1, targetPercent);
+      _loadingCurrentPercent = Math.min(
+        _loadingCurrentPercent + 1,
+        targetPercent,
+      );
       if (pct) pct.textContent = `${_loadingCurrentPercent}%`;
       _loadingRafId = requestAnimationFrame(animatePercent);
     }
@@ -53,23 +81,23 @@ function setLoadingProgress(stageId) {
     const el = document.getElementById(s.stepId);
     if (!el) return;
     if (s.percent < stage.percent) {
-      el.classList.remove('active');
-      el.classList.add('done');
+      el.classList.remove("active");
+      el.classList.add("done");
     } else if (s.id === stageId) {
-      el.classList.remove('done');
-      el.classList.add('active');
+      el.classList.remove("done");
+      el.classList.add("active");
     } else {
-      el.classList.remove('active', 'done');
+      el.classList.remove("active", "done");
     }
   });
 }
 
 function hideLoadingScreen() {
-  const screen = document.getElementById('loadingScreen');
+  const screen = document.getElementById("loadingScreen");
   if (!screen) return;
-  screen.classList.add('fade-out');
+  screen.classList.add("fade-out");
   setTimeout(() => {
-    screen.style.display = 'none';
+    screen.style.display = "none";
   }, 800);
 }
 
@@ -77,7 +105,7 @@ function hideLoadingScreen() {
 let scene, camera, renderer, controls;
 let buildings = [];
 let car = null;
-let currentTransport = 'taxi';
+let currentTransport = "taxi";
 let selectedDestination = null;
 let routeGenerated = false;
 let isNavigating = false;
@@ -132,10 +160,10 @@ function delay(ms) {
 // ========== Three.js 初始化 ==========
 async function initThreeJS() {
   detectMobile();
-  const container = document.getElementById('canvas-container');
+  const container = document.getElementById("canvas-container");
 
   // 开始加载：世界创建
-  setLoadingProgress('world');
+  setLoadingProgress("world");
   await delay(600);
 
   // 场景设置
@@ -148,7 +176,7 @@ async function initThreeJS() {
     75,
     window.innerWidth / window.innerHeight,
     0.1,
-    10000
+    10000,
   );
   camera.position.set(100, 120, 150);
   camera.lookAt(0, 0, 0);
@@ -192,7 +220,7 @@ async function initThreeJS() {
   createBalloons();
 
   // 处理窗口大小变化
-  window.addEventListener('resize', onWindowResize);
+  window.addEventListener("resize", onWindowResize);
 
   // 开始渲染
   animate();
@@ -206,7 +234,7 @@ async function createCityScene() {
   // 地面 - 扩大范围
   const groundGeometry = new THREE.PlaneGeometry(600, 600);
   const groundMaterial = new THREE.MeshLambertMaterial({
-    color: 0x4cd964,  // 鲜亮翠绿色
+    color: 0x4cd964, // 鲜亮翠绿色
   });
   const ground = new THREE.Mesh(groundGeometry, groundMaterial);
   ground.rotation.x = -Math.PI / 2;
@@ -214,12 +242,12 @@ async function createCityScene() {
   scene.add(ground);
 
   // 道路
-  setLoadingProgress('roads');
+  setLoadingProgress("roads");
   createRoads();
   await delay(700);
 
   // 建筑物
-  setLoadingProgress('buildings');
+  setLoadingProgress("buildings");
   createBuildings();
   await delay(800);
 
@@ -279,10 +307,10 @@ function createBuildings() {
       width: 35,
       depth: 35,
       height: 55,
-      name: '婚礼现场',
+      name: "婚礼现场",
       color: 0xff69b4,
       isVenue: true,
-      destination: 'wedding',
+      destination: "wedding",
     },
     {
       x: 150,
@@ -290,10 +318,10 @@ function createBuildings() {
       width: 28,
       depth: 28,
       height: 45,
-      name: '新郎家',
+      name: "新郎家",
       color: 0x1e90ff,
       isVenue: true,
-      destination: 'groom',
+      destination: "groom",
     },
     {
       x: -150,
@@ -301,108 +329,108 @@ function createBuildings() {
       width: 28,
       depth: 28,
       height: 45,
-      name: '新娘家',
+      name: "新娘家",
       color: 0xffd700,
       isVenue: true,
-      destination: 'bride',
+      destination: "bride",
     },
 
     // === 办公大楼（鲜亮蓝绿系）===
-    { x: -150, z: -60, width: 25, depth: 25, height: 60, color: 0x00d4ff },  // 天蓝
-    { x: -150, z: 60, width: 22, depth: 22, height: 55, color: 0x00e5cc },   // 青绿
-    { x: 150, z: -60, width: 24, depth: 24, height: 58, color: 0x5bc8ff },   // 浅蓝
-    { x: 150, z: 60, width: 26, depth: 26, height: 52, color: 0x00bfff },    // 深天蓝
+    { x: -150, z: -60, width: 25, depth: 25, height: 60, color: 0x00d4ff }, // 天蓝
+    { x: -150, z: 60, width: 22, depth: 22, height: 55, color: 0x00e5cc }, // 青绿
+    { x: 150, z: -60, width: 24, depth: 24, height: 58, color: 0x5bc8ff }, // 浅蓝
+    { x: 150, z: 60, width: 26, depth: 26, height: 52, color: 0x00bfff }, // 深天蓝
 
     // === 商业中心（亮橙/黄系）===
-    { x: -60, z: -150, width: 30, depth: 20, height: 40, color: 0xff9500 },  // 橙色
-    { x: 60, z: -150, width: 28, depth: 22, height: 42, color: 0xffd000 },   // 金黄
-    { x: -60, z: 150, width: 32, depth: 18, height: 38, color: 0xff6b35 },   // 亮橙红
-    { x: 60, z: 150, width: 26, depth: 24, height: 44, color: 0xffaa00 },    // 琥珀
+    { x: -60, z: -150, width: 30, depth: 20, height: 40, color: 0xff9500 }, // 橙色
+    { x: 60, z: -150, width: 28, depth: 22, height: 42, color: 0xffd000 }, // 金黄
+    { x: -60, z: 150, width: 32, depth: 18, height: 38, color: 0xff6b35 }, // 亮橙红
+    { x: 60, z: 150, width: 26, depth: 24, height: 44, color: 0xffaa00 }, // 琥珀
 
     // === 住宅楼（珊瑚/粉红系）===
     { x: -160, z: -130, width: 18, depth: 18, height: 35, color: 0xff6eb4 }, // 粉红
-    { x: -160, z: -30, width: 20, depth: 20, height: 32, color: 0xff4d8b },  // 亮粉
-    { x: 160, z: -130, width: 18, depth: 18, height: 36, color: 0xff7eb3 },  // 浅粉
-    { x: 160, z: 30, width: 21, depth: 21, height: 33, color: 0xff5fa0 },    // 玫瑰粉
+    { x: -160, z: -30, width: 20, depth: 20, height: 32, color: 0xff4d8b }, // 亮粉
+    { x: 160, z: -130, width: 18, depth: 18, height: 36, color: 0xff7eb3 }, // 浅粉
+    { x: 160, z: 30, width: 21, depth: 21, height: 33, color: 0xff5fa0 }, // 玫瑰粉
 
     // === 中心区域建筑 ===
     // 左下街区 (-100到0, -100到0)
-    { x: -60, z: -60, width: 20, depth: 20, height: 48, color: 0xff6ec7 },   // 亮玫粉
-    { x: -70, z: -30, width: 18, depth: 18, height: 40, color: 0xffb347 },   // 鲜橙黄
-    { x: -45, z: -45, width: 14, depth: 14, height: 32, color: 0xff5fa0 },   // 玫瑰粉
-    { x: -20, z: -50, width: 13, depth: 13, height: 28, color: 0xffd966 },   // 亮黄
+    { x: -60, z: -60, width: 20, depth: 20, height: 48, color: 0xff6ec7 }, // 亮玫粉
+    { x: -70, z: -30, width: 18, depth: 18, height: 40, color: 0xffb347 }, // 鲜橙黄
+    { x: -45, z: -45, width: 14, depth: 14, height: 32, color: 0xff5fa0 }, // 玫瑰粉
+    { x: -20, z: -50, width: 13, depth: 13, height: 28, color: 0xffd966 }, // 亮黄
 
     // 右下街区 (0到100, -100到0)
-    { x: 60, z: -60, width: 22, depth: 22, height: 46, color: 0x4dd9ff },    // 天蓝（浅亮）
-    { x: 30, z: -70, width: 17, depth: 17, height: 38, color: 0x5ef6ff },    // 亮青蓝
-    { x: 70, z: -30, width: 19, depth: 19, height: 42, color: 0x40d4ff },    // 浅蓝
-    { x: 20, z: -50, width: 14, depth: 14, height: 29, color: 0x80eaff },    // 淡青
+    { x: 60, z: -60, width: 22, depth: 22, height: 46, color: 0x4dd9ff }, // 天蓝（浅亮）
+    { x: 30, z: -70, width: 17, depth: 17, height: 38, color: 0x5ef6ff }, // 亮青蓝
+    { x: 70, z: -30, width: 19, depth: 19, height: 42, color: 0x40d4ff }, // 浅蓝
+    { x: 20, z: -50, width: 14, depth: 14, height: 29, color: 0x80eaff }, // 淡青
 
     // 左上街区 (-100到0, 0到100)
-    { x: -60, z: 60, width: 21, depth: 21, height: 44, color: 0x69f0ae },    // 薄荷绿
-    { x: -30, z: 70, width: 16, depth: 16, height: 36, color: 0x00e676 },    // 亮绿
-    { x: -20, z: 50, width: 13, depth: 13, height: 30, color: 0x76ff03 },    // 草绿
+    { x: -60, z: 60, width: 21, depth: 21, height: 44, color: 0x69f0ae }, // 薄荷绿
+    { x: -30, z: 70, width: 16, depth: 16, height: 36, color: 0x00e676 }, // 亮绿
+    { x: -20, z: 50, width: 13, depth: 13, height: 30, color: 0x76ff03 }, // 草绿
 
     // 右上街区 (0到100, 0到100)
-    { x: 30, z: 70, width: 17, depth: 17, height: 37, color: 0xffea00 },     // 亮黄
-    { x: 70, z: 30, width: 19, depth: 19, height: 43, color: 0xff6d00 },     // 深橙
-    { x: 45, z: 45, width: 15, depth: 15, height: 35, color: 0xff3d00 },     // 朱红
+    { x: 30, z: 70, width: 17, depth: 17, height: 37, color: 0xffea00 }, // 亮黄
+    { x: 70, z: 30, width: 19, depth: 19, height: 43, color: 0xff6d00 }, // 深橙
+    { x: 45, z: 45, width: 15, depth: 15, height: 35, color: 0xff3d00 }, // 朱红
 
     // === 小型建筑（填充街区）===
     // 南边街区
     { x: -130, z: -150, width: 15, depth: 15, height: 28, color: 0x40c4ff }, // 浅天蓝
-    { x: -30, z: -150, width: 16, depth: 16, height: 30, color: 0x18ffff },  // 亮青
-    { x: -130, z: -165, width: 14, depth: 14, height: 24, color: 0x64ffda },  // 薄荷青
-    { x: 30, z: -165, width: 13, depth: 13, height: 22, color: 0xb2ff59 },   // 黄绿
+    { x: -30, z: -150, width: 16, depth: 16, height: 30, color: 0x18ffff }, // 亮青
+    { x: -130, z: -165, width: 14, depth: 14, height: 24, color: 0x64ffda }, // 薄荷青
+    { x: 30, z: -165, width: 13, depth: 13, height: 22, color: 0xb2ff59 }, // 黄绿
 
     // 北边街区
-    { x: -130, z: 150, width: 15, depth: 15, height: 29, color: 0xeeff41 },  // 柠檬黄
-    { x: 130, z: 150, width: 14, depth: 14, height: 31, color: 0xffd740 },   // 金黄
-    { x: -70, z: 165, width: 13, depth: 13, height: 25, color: 0xffab40 },   // 橙黄
-    { x: 70, z: 165, width: 14, depth: 14, height: 23, color: 0xff6e40 },    // 橙红
+    { x: -130, z: 150, width: 15, depth: 15, height: 29, color: 0xeeff41 }, // 柠檬黄
+    { x: 130, z: 150, width: 14, depth: 14, height: 31, color: 0xffd740 }, // 金黄
+    { x: -70, z: 165, width: 13, depth: 13, height: 25, color: 0xffab40 }, // 橙黄
+    { x: 70, z: 165, width: 14, depth: 14, height: 23, color: 0xff6e40 }, // 橙红
 
     // 西边街区
     { x: -150, z: -130, width: 16, depth: 16, height: 34, color: 0x40ffb3 }, // 翠青
-    { x: -150, z: -30, width: 18, depth: 18, height: 36, color: 0x00e5ff },  // 亮青
-    { x: -150, z: 70, width: 15, depth: 15, height: 32, color: 0x84ffff },   // 淡青
-    { x: -165, z: -70, width: 14, depth: 14, height: 28, color: 0x1de9b6 },  // 碧绿
+    { x: -150, z: -30, width: 18, depth: 18, height: 36, color: 0x00e5ff }, // 亮青
+    { x: -150, z: 70, width: 15, depth: 15, height: 32, color: 0x84ffff }, // 淡青
+    { x: -165, z: -70, width: 14, depth: 14, height: 28, color: 0x1de9b6 }, // 碧绿
 
     // 东边街区
-    { x: 150, z: -130, width: 17, depth: 17, height: 35, color: 0xff80ab },  // 粉红
-    { x: 150, z: 130, width: 16, depth: 16, height: 37, color: 0xffb3c6 },   // 浅粉
-    { x: 165, z: -70, width: 14, depth: 14, height: 31, color: 0xffda79 },   // 杏黄
-    { x: 165, z: 70, width: 15, depth: 15, height: 29, color: 0xffd166 },    // 蜜黄
+    { x: 150, z: -130, width: 17, depth: 17, height: 35, color: 0xff80ab }, // 粉红
+    { x: 150, z: 130, width: 16, depth: 16, height: 37, color: 0xffb3c6 }, // 浅粉
+    { x: 165, z: -70, width: 14, depth: 14, height: 31, color: 0xffda79 }, // 杏黄
+    { x: 165, z: 70, width: 15, depth: 15, height: 29, color: 0xffd166 }, // 蜜黄
 
     // === 街角建筑 ===
     // 四个角的主要建筑
     { x: -130, z: -130, width: 18, depth: 18, height: 40, color: 0x00e5ff }, // 亮青
-    { x: 130, z: -130, width: 19, depth: 19, height: 42, color: 0x00bcd4 },  // 青色
-    { x: -130, z: 130, width: 17, depth: 17, height: 38, color: 0x26c6da },  // 青蓝
-    { x: 130, z: 130, width: 20, depth: 20, height: 41, color: 0x00acc1 },   // 深青
+    { x: 130, z: -130, width: 19, depth: 19, height: 42, color: 0x00bcd4 }, // 青色
+    { x: -130, z: 130, width: 17, depth: 17, height: 38, color: 0x26c6da }, // 青蓝
+    { x: 130, z: 130, width: 20, depth: 20, height: 41, color: 0x00acc1 }, // 深青
 
     // 左侧街区建筑
-    { x: -130, z: -60, width: 16, depth: 16, height: 30, color: 0xff5722 },  // 深橙
-    { x: -130, z: 60, width: 17, depth: 17, height: 32, color: 0xff7043 },   // 橙色
-    { x: -165, z: -30, width: 13, depth: 13, height: 26, color: 0xffa726 },  // 亮橙
-    { x: -165, z: 30, width: 14, depth: 14, height: 28, color: 0xffca28 },   // 金黄
+    { x: -130, z: -60, width: 16, depth: 16, height: 30, color: 0xff5722 }, // 深橙
+    { x: -130, z: 60, width: 17, depth: 17, height: 32, color: 0xff7043 }, // 橙色
+    { x: -165, z: -30, width: 13, depth: 13, height: 26, color: 0xffa726 }, // 亮橙
+    { x: -165, z: 30, width: 14, depth: 14, height: 28, color: 0xffca28 }, // 金黄
 
     // 右侧街区建筑
-    { x: 130, z: -60, width: 15, depth: 15, height: 31, color: 0x5ce8a4 },   // 薄荷绿
-    { x: 130, z: 60, width: 18, depth: 18, height: 29, color: 0x5de8d9 },    // 青绿
-    { x: 165, z: -30, width: 13, depth: 13, height: 27, color: 0xf48fb1 },   // 粉色
-    { x: 165, z: 30, width: 14, depth: 14, height: 25, color: 0xf06292 },    // 玫红
+    { x: 130, z: -60, width: 15, depth: 15, height: 31, color: 0x5ce8a4 }, // 薄荷绿
+    { x: 130, z: 60, width: 18, depth: 18, height: 29, color: 0x5de8d9 }, // 青绿
+    { x: 165, z: -30, width: 13, depth: 13, height: 27, color: 0xf48fb1 }, // 粉色
+    { x: 165, z: 30, width: 14, depth: 14, height: 25, color: 0xf06292 }, // 玫红
 
     // 南侧街区建筑
-    { x: -60, z: -130, width: 14, depth: 14, height: 25, color: 0xff4081 },  // 粉红
-    { x: 60, z: -130, width: 15, depth: 15, height: 27, color: 0xff1744 },   // 亮红
-    { x: -30, z: -165, width: 12, depth: 12, height: 23, color: 0xff6b35 },  // 橙红
-    { x: 30, z: -165, width: 13, depth: 13, height: 24, color: 0xff9100 },   // 橙色
+    { x: -60, z: -130, width: 14, depth: 14, height: 25, color: 0xff4081 }, // 粉红
+    { x: 60, z: -130, width: 15, depth: 15, height: 27, color: 0xff1744 }, // 亮红
+    { x: -30, z: -165, width: 12, depth: 12, height: 23, color: 0xff6b35 }, // 橙红
+    { x: 30, z: -165, width: 13, depth: 13, height: 24, color: 0xff9100 }, // 橙色
 
     // 北侧街区建筑
-    { x: -60, z: 130, width: 16, depth: 16, height: 26, color: 0x69f0ae },   // 薄荷绿
-    { x: 60, z: 130, width: 14, depth: 14, height: 28, color: 0xb2ff59 },    // 黄绿
-    { x: -30, z: 165, width: 12, depth: 12, height: 24, color: 0xccff90 },   // 浅绿
-    { x: 30, z: 165, width: 13, depth: 13, height: 25, color: 0xf4ff81 },    // 嫩黄
+    { x: -60, z: 130, width: 16, depth: 16, height: 26, color: 0x69f0ae }, // 薄荷绿
+    { x: 60, z: 130, width: 14, depth: 14, height: 28, color: 0xb2ff59 }, // 黄绿
+    { x: -30, z: 165, width: 12, depth: 12, height: 24, color: 0xccff90 }, // 浅绿
+    { x: 30, z: 165, width: 13, depth: 13, height: 25, color: 0xf4ff81 }, // 嫩黄
   ];
 
   positions.forEach((pos, idx) => {
@@ -475,21 +503,19 @@ function createVehicle() {
   car = carGroup;
 
   // 汇报进度：法拉利加载中
-  setLoadingProgress('ferrari');
+  setLoadingProgress("ferrari");
 
   // 使用GLTFLoader加载法拉利458模型
   const loader = new GLTFLoader();
 
   // 配置DRACOLoader（法拉利模型使用了Draco压缩）
   const dracoLoader = new DRACOLoader();
-  dracoLoader.setDecoderPath(
-    './draco/gltf/'
-  );
-  dracoLoader.setDecoderConfig({ type: 'js' });
+  dracoLoader.setDecoderPath("./draco/gltf/");
+  dracoLoader.setDecoderConfig({ type: "js" });
   loader.setDRACOLoader(dracoLoader);
 
   // 从本地加载模型（public/ferrari.glb）
-  const modelUrl = './ferrari.glb';
+  const modelUrl = "./ferrari.glb";
 
   loader.load(
     modelUrl,
@@ -524,13 +550,13 @@ function createVehicle() {
       createFallbackVehicle(carGroup);
       // 备用车辆也算加载完成
       _finishLoading();
-    }
+    },
   );
 }
 
 // 完成加载：显示"准备完成"再隐藏加载屏
 function _finishLoading() {
-  setLoadingProgress('ready');
+  setLoadingProgress("ready");
   setTimeout(() => {
     hideLoadingScreen();
   }, 1200);
@@ -596,7 +622,7 @@ function createBalloons() {
     balloon.position.set(
       (Math.random() - 0.5) * 200,
       50 + Math.random() * 80,
-      (Math.random() - 0.5) * 200
+      (Math.random() - 0.5) * 200,
     );
 
     balloon.userData.initialPos = balloon.position.clone();
@@ -621,15 +647,15 @@ function createSkybox() {
 // ========== UI 交互 ==========
 function selectTransport(type) {
   currentTransport = type;
-  document.querySelectorAll('.transport-options .btn').forEach((btn) => {
-    btn.classList.remove('active');
+  document.querySelectorAll(".transport-options .btn").forEach((btn) => {
+    btn.classList.remove("active");
   });
-  document.querySelector(`[data-transport="${type}"]`).classList.add('active');
-  updateStatus(`已选择 ${type === 'taxi' ? '打车' : '自驾'} 出行`);
+  document.querySelector(`[data-transport="${type}"]`).classList.add("active");
+  updateStatus(`已选择 ${type === "taxi" ? "打车" : "自驾"} 出行`);
 }
 
 function updateDestination() {
-  const select = document.getElementById('destinationSelect');
+  const select = document.getElementById("destinationSelect");
   selectedDestination = select.value;
   if (selectedDestination) {
     updateStatus(`已选择目的地: ${select.options[select.selectedIndex].text}`);
@@ -638,27 +664,27 @@ function updateDestination() {
 
 function generateRoute() {
   if (!selectedDestination) {
-    updateStatus('⚠️ 请选择目的地');
+    updateStatus("⚠️ 请选择目的地");
     return;
   }
 
   routeGenerated = true;
-  document.getElementById('startBtn').disabled = false;
+  document.getElementById("startBtn").disabled = false;
 
   const distance = (Math.random() * 15 + 5).toFixed(1);
-  const time = Math.ceil(distance * (currentTransport === 'taxi' ? 1.5 : 1.2));
+  const time = Math.ceil(distance * (currentTransport === "taxi" ? 1.5 : 1.2));
 
   updateStatus(`✓ 路线已生成\n距离: ${distance}km\n预计时间: ${time}分钟`);
 
   // 显示路线信息面板
-  const infoPanel = document.getElementById('infoPanel');
-  infoPanel.style.display = 'block';
-  document.getElementById('routeInfo').innerHTML = `
+  const infoPanel = document.getElementById("infoPanel");
+  infoPanel.style.display = "block";
+  document.getElementById("routeInfo").innerHTML = `
     <div class="route-info">
-      <p>📍 目的地: ${document.getElementById('destinationSelect').options[document.getElementById('destinationSelect').selectedIndex].text}</p>
+      <p>📍 目的地: ${document.getElementById("destinationSelect").options[document.getElementById("destinationSelect").selectedIndex].text}</p>
       <p class="distance">📏 距离: ${distance} km</p>
       <p class="time">⏱️ 时间: 约 ${time} 分钟</p>
-      <p>🚗 方式: ${currentTransport === 'taxi' ? '🚖 打车服务' : '🚗 自驾'}</p>
+      <p>🚗 方式: ${currentTransport === "taxi" ? "🚖 打车服务" : "🚗 自驾"}</p>
     </div>
   `;
 
@@ -666,9 +692,9 @@ function generateRoute() {
 
   // 移动端：隐藏控制面板、状态框和导航信息
   if (isMobile) {
-    document.getElementById('controlsPanel').style.display = 'none';
-    document.getElementById('statusBox').style.display = 'none';
-    document.getElementById('infoPanel').style.display = 'none';
+    document.getElementById("controlsPanel").style.display = "none";
+    document.getElementById("statusBox").style.display = "none";
+    document.getElementById("infoPanel").style.display = "none";
   }
 
   // 先切换到俯视视角，完成后再显示路线预览
@@ -752,7 +778,7 @@ function findPathOnRoads(start, end) {
         // 如果距离>=100，按100的步长移动1-2步
         const steps = Math.min(
           Math.floor(remainingX / 100),
-          remainingX > 200 ? 2 : 1
+          remainingX > 200 ? 2 : 1,
         );
         for (let i = 0; i < steps; i++) {
           const step = current.x < end.x ? 100 : -100;
@@ -774,7 +800,7 @@ function findPathOnRoads(start, end) {
         // 如果距离>=100，按100的步长移动1-2步
         const steps = Math.min(
           Math.floor(remainingZ / 100),
-          remainingZ > 200 ? 2 : 1
+          remainingZ > 200 ? 2 : 1,
         );
         for (let i = 0; i < steps; i++) {
           const step = current.z < end.z ? 100 : -100;
@@ -883,7 +909,7 @@ function switchToTopView(onComplete) {
       controls.update();
 
       // 执行完成回调
-      if (onComplete && typeof onComplete === 'function') {
+      if (onComplete && typeof onComplete === "function") {
         onComplete();
       }
     }
@@ -932,7 +958,7 @@ function showRoutePreview() {
       }
 
       // 创建曲线 - 使用centripetal模式和tension=0实现更锐利的转角
-      const curve = new THREE.CatmullRomCurve3(points, false, 'centripetal', 0);
+      const curve = new THREE.CatmullRomCurve3(points, false, "centripetal", 0);
 
       // 使用TubeGeometry创建管道，完全平滑无接缝
       const tubeGeometry = new THREE.TubeGeometry(
@@ -940,7 +966,7 @@ function showRoutePreview() {
         Math.max(points.length * 4, 128), // 增加分段数以更好地跟随路径
         2, // 管道半径
         8, // 径向分段
-        false // 不闭合
+        false, // 不闭合
       );
 
       const tubeMaterial = new THREE.MeshBasicMaterial({
@@ -982,7 +1008,7 @@ function showRoutePreview() {
     } else {
       // 路线预览完成，移动端显示控制面板
       if (isMobile) {
-        document.getElementById('controlsPanel').style.display = 'block';
+        document.getElementById("controlsPanel").style.display = "block";
       }
     }
   }
@@ -992,7 +1018,7 @@ function showRoutePreview() {
 
 function startJourney() {
   if (!routeGenerated) {
-    updateStatus('请先生成路线');
+    updateStatus("请先生成路线");
     return;
   }
 
@@ -1002,41 +1028,41 @@ function startJourney() {
   lastUpdatedRouteIndex = -1; // 重置导航线更新状态
 
   // 隐藏出行方案框
-  const controlsPanel = document.getElementById('controlsPanel');
+  const controlsPanel = document.getElementById("controlsPanel");
   if (controlsPanel) {
-    controlsPanel.style.display = 'none';
+    controlsPanel.style.display = "none";
   }
 
   // 移动端：显示虚拟方向键和导航信息
   if (isMobile) {
-    const virtualJoystick = document.getElementById('virtualJoystick');
-    const infoPanel = document.getElementById('infoPanel');
+    const virtualJoystick = document.getElementById("virtualJoystick");
+    const infoPanel = document.getElementById("infoPanel");
 
     // 只在自驾模式显示虚拟方向键
-    if (currentTransport === 'drive' && virtualJoystick) {
-      virtualJoystick.classList.add('active');
+    if (currentTransport === "drive" && virtualJoystick) {
+      virtualJoystick.classList.add("active");
     }
 
     // 显示导航信息
     if (infoPanel) {
-      infoPanel.style.display = 'block';
+      infoPanel.style.display = "block";
     }
   }
 
   // 根据出行方式显示不同提示和语音播报
   const destinationNames = {
-    wedding: '婚礼现场',
-    groom: '新郎家',
-    bride: '新娘家',
+    wedding: "婚礼现场",
+    groom: "新郎家",
+    bride: "新娘家",
   };
 
-  const destName = destinationNames[selectedDestination] || '目的地';
+  const destName = destinationNames[selectedDestination] || "目的地";
 
-  if (currentTransport === 'taxi') {
-    updateStatus('🚖 打车模式：自动导航中...');
+  if (currentTransport === "taxi") {
+    updateStatus("🚖 打车模式：自动导航中...");
     speak(`开始导航，目的地${destName}，请系好安全带`);
   } else {
-    updateStatus('🚗 自驾模式：使用方向键控制（↑↓←→）');
+    updateStatus("🚗 自驾模式：使用方向键控制（↑↓←→）");
     speak(`开始导航，目的地${destName}，请小心驾驶`);
   }
 
@@ -1071,14 +1097,14 @@ function startJourney() {
     camera.position.set(
       car.position.x - Math.sin(car.rotation.y) * offsetDistance,
       50,
-      car.position.z - Math.cos(car.rotation.y) * offsetDistance
+      car.position.z - Math.cos(car.rotation.y) * offsetDistance,
     );
 
     // 相机看向小车前方
     controls.target.set(
       car.position.x + Math.sin(car.rotation.y) * 20,
       car.position.y,
-      car.position.z + Math.cos(car.rotation.y) * 20
+      car.position.z + Math.cos(car.rotation.y) * 20,
     );
   }
 
@@ -1116,7 +1142,7 @@ function startJourney() {
     for (let i = 0; i < vertexCount; i++) {
       alphas[i] = 1.0; // 初始全部可见
     }
-    geometry.setAttribute('alpha', new THREE.BufferAttribute(alphas, 1));
+    geometry.setAttribute("alpha", new THREE.BufferAttribute(alphas, 1));
 
     // 使用自定义shader材质
     routePreviewLine.material = new THREE.ShaderMaterial({
@@ -1149,7 +1175,7 @@ function startJourney() {
   }
 
   // 如果是自驾模式，添加键盘监听
-  if (currentTransport === 'drive') {
+  if (currentTransport === "drive") {
     setupKeyboardControls();
   }
 
@@ -1158,28 +1184,28 @@ function startJourney() {
 }
 
 function updateStatus(message) {
-  document.getElementById('statusBox').textContent = message;
+  document.getElementById("statusBox").textContent = message;
 }
 
 // Toast 提示函数
-function showToast(message, type = 'info', duration = 2000) {
-  const container = document.getElementById('toastContainer');
+function showToast(message, type = "info", duration = 2000) {
+  const container = document.getElementById("toastContainer");
   if (!container) return;
 
   // 创建 toast 元素
-  const toast = document.createElement('div');
+  const toast = document.createElement("div");
   toast.className = `toast ${type}`;
 
   // 设置图标
   const iconMap = {
-    success: '✓',
-    warning: '⚠',
-    error: '✕',
-    info: 'ℹ',
+    success: "✓",
+    warning: "⚠",
+    error: "✕",
+    info: "ℹ",
   };
 
   toast.innerHTML = `
-    <span class="toast-icon">${iconMap[type] || 'ℹ'}</span>
+    <span class="toast-icon">${iconMap[type] || "ℹ"}</span>
     <span class="toast-message">${message}</span>
   `;
 
@@ -1187,7 +1213,7 @@ function showToast(message, type = 'info', duration = 2000) {
   container.appendChild(toast);
 
   // 点击消除
-  toast.addEventListener('click', () => removeToast(toast));
+  toast.addEventListener("click", () => removeToast(toast));
 
   // 自动消除
   toast._timeoutId = setTimeout(() => removeToast(toast), duration);
@@ -1203,7 +1229,7 @@ function removeToast(toast) {
   }
 
   // 添加移除动画
-  toast.classList.add('removing');
+  toast.classList.add("removing");
 
   // 等待动画完成后移除元素
   setTimeout(() => {
@@ -1218,7 +1244,7 @@ function speak(text) {
   // 检查语音合成 API 是否可用
   if (!synth) {
     // 不支持语音，显示 Toast 提示
-    showToast(`🔔 ${text}`, 'info');
+    showToast(`🔔 ${text}`, "info");
     return;
   }
 
@@ -1227,20 +1253,20 @@ function speak(text) {
     synth.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'zh-CN'; // 设置中文
+    utterance.lang = "zh-CN"; // 设置中文
     utterance.rate = 1.0; // 语速
     utterance.pitch = 1.0; // 音调
     utterance.volume = 1.0; // 音量
 
     // 监听播报失败事件
     utterance.onerror = (event) => {
-      showToast(`🔔 ${text}`, 'warning');
+      showToast(`🔔 ${text}`, "warning");
     };
 
     synth.speak(utterance);
   } catch (error) {
     // 异常时显示 Toast 提示
-    showToast(`🔔 ${text}`, 'warning');
+    showToast(`🔔 ${text}`, "warning");
   }
 }
 
@@ -1251,8 +1277,11 @@ function initEngineSound() {
       audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
       // 如果 AudioContext 被挂起（iOS 常见），立即 resume
-      if (audioContext.state === 'suspended') {
-        audioContext.resume().then(() => {}).catch(() => {});
+      if (audioContext.state === "suspended") {
+        audioContext
+          .resume()
+          .then(() => {})
+          .catch(() => {});
       }
     } catch (error) {
       // AudioContext 创建失败
@@ -1267,18 +1296,18 @@ function startEngineSound() {
   initEngineSound();
 
   // 再次确保 AudioContext 处于可用状态（iOS 兼容性）
-  if (audioContext.state === 'suspended') {
+  if (audioContext.state === "suspended") {
     audioContext.resume();
   }
 
   // 创建主振荡器（低频基础音）
   engineOscillator1 = audioContext.createOscillator();
-  engineOscillator1.type = 'triangle'; // 三角波更柔和
+  engineOscillator1.type = "triangle"; // 三角波更柔和
   engineOscillator1.frequency.setValueAtTime(60, audioContext.currentTime);
 
   // 创建副振荡器（高频泛音，增加层次感）
   engineOscillator2 = audioContext.createOscillator();
-  engineOscillator2.type = 'sine'; // 正弦波作为泛音
+  engineOscillator2.type = "sine"; // 正弦波作为泛音
   engineOscillator2.frequency.setValueAtTime(120, audioContext.currentTime); // 倍频
 
   // 创建噪声（模拟引擎震动和排气声）
@@ -1286,7 +1315,7 @@ function startEngineSound() {
   const noiseBuffer = audioContext.createBuffer(
     1,
     bufferSize,
-    audioContext.sampleRate
+    audioContext.sampleRate,
   );
   const output = noiseBuffer.getChannelData(0);
   for (let i = 0; i < bufferSize; i++) {
@@ -1298,7 +1327,7 @@ function startEngineSound() {
 
   // 噪声滤波器（只保留低频噪声）
   const noiseFilter = audioContext.createBiquadFilter();
-  noiseFilter.type = 'lowpass';
+  noiseFilter.type = "lowpass";
   noiseFilter.frequency.setValueAtTime(300, audioContext.currentTime);
 
   // 创建增益节点
@@ -1358,13 +1387,13 @@ function updateEngineSound(speed) {
   engineOscillator1.frequency.setTargetAtTime(
     targetFrequency1 + periodicModulation + lowFreqModulation,
     audioContext.currentTime,
-    0.1
+    0.1,
   );
 
   engineOscillator2.frequency.setTargetAtTime(
     targetFrequency2 + periodicModulation * 0.7,
     audioContext.currentTime,
-    0.1
+    0.1,
   );
 
   // 根据速度调整音量（加速时引擎声更响），添加明显波动
@@ -1375,7 +1404,7 @@ function updateEngineSound(speed) {
   engineGainNode.gain.setTargetAtTime(
     targetVolume,
     audioContext.currentTime,
-    0.1
+    0.1,
   );
 
   // 噪声音量也随速度变化，添加非常明显的脉动效果
@@ -1386,7 +1415,7 @@ function updateEngineSound(speed) {
   noiseGainNode.gain.setTargetAtTime(
     targetNoiseVolume,
     audioContext.currentTime,
-    0.1
+    0.1,
   );
 }
 
@@ -1430,24 +1459,24 @@ function stopEngineSound() {
 // 设置键盘控制
 function setupKeyboardControls() {
   // 移除旧的监听器（如果有）
-  document.removeEventListener('keydown', handleKeyDown);
-  document.removeEventListener('keyup', handleKeyUp);
+  document.removeEventListener("keydown", handleKeyDown);
+  document.removeEventListener("keyup", handleKeyUp);
 
   // 添加新的监听器
-  document.addEventListener('keydown', handleKeyDown);
-  document.addEventListener('keyup', handleKeyUp);
+  document.addEventListener("keydown", handleKeyDown);
+  document.addEventListener("keyup", handleKeyUp);
 }
 
 function handleKeyDown(e) {
   // 方向键控制
-  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
     e.preventDefault();
     keyState[e.key] = true;
   }
 }
 
 function handleKeyUp(e) {
-  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
     e.preventDefault();
     keyState[e.key] = false;
   }
@@ -1460,23 +1489,23 @@ function handleDriveMode() {
   let moved = false;
 
   // 前进/后退
-  if (keyState['ArrowUp']) {
+  if (keyState["ArrowUp"]) {
     car.position.x += Math.sin(car.rotation.y) * carSpeed;
     car.position.z += Math.cos(car.rotation.y) * carSpeed;
     moved = true;
   }
-  if (keyState['ArrowDown']) {
+  if (keyState["ArrowDown"]) {
     car.position.x -= Math.sin(car.rotation.y) * carSpeed;
     car.position.z -= Math.cos(car.rotation.y) * carSpeed;
     moved = true;
   }
 
   // 转向 - 降低转向速度，让控制更精确
-  if (keyState['ArrowLeft']) {
+  if (keyState["ArrowLeft"]) {
     car.rotation.y += 0.02;
     moved = true;
   }
-  if (keyState['ArrowRight']) {
+  if (keyState["ArrowRight"]) {
     car.rotation.y -= 0.02;
     moved = true;
   }
@@ -1503,14 +1532,14 @@ function updateCameraFollow() {
   const targetCameraPos = new THREE.Vector3(
     car.position.x - Math.sin(car.rotation.y) * 50,
     50,
-    car.position.z - Math.cos(car.rotation.y) * 50
+    car.position.z - Math.cos(car.rotation.y) * 50,
   );
 
   // 计算相机的目标观察点（小车前方）
   const targetLookAt = new THREE.Vector3(
     car.position.x + Math.sin(car.rotation.y) * 20,
     car.position.y,
-    car.position.z + Math.cos(car.rotation.y) * 20
+    car.position.z + Math.cos(car.rotation.y) * 20,
   );
 
   // 🎬 使用线性插值(lerp)平滑过渡相机位置和观察点
@@ -1555,7 +1584,7 @@ function removePassedRouteSegments() {
   const carPos = new THREE.Vector3(
     car.position.x,
     car.position.y,
-    car.position.z
+    car.position.z,
   );
   const fadeDistance = 25; // 渐变区域距离
 
@@ -1593,7 +1622,7 @@ function checkArrival() {
   const destination = currentRoutePoints[currentRoutePoints.length - 1];
   const distance = Math.hypot(
     destination.x - car.position.x,
-    destination.z - car.position.z
+    destination.z - car.position.z,
   );
 
   // 如果距离目的地较远就开始减速，让减速过程更明显
@@ -1636,8 +1665,10 @@ const FIREWORK_COLORS = [
  */
 function launchFirework(position) {
   // 随机选择爆炸颜色
-  const color = FIREWORK_COLORS[Math.floor(Math.random() * FIREWORK_COLORS.length)];
-  const accentColor = FIREWORK_COLORS[Math.floor(Math.random() * FIREWORK_COLORS.length)];
+  const color =
+    FIREWORK_COLORS[Math.floor(Math.random() * FIREWORK_COLORS.length)];
+  const accentColor =
+    FIREWORK_COLORS[Math.floor(Math.random() * FIREWORK_COLORS.length)];
 
   // ---- 阶段1：上升拖尾 ----
   const trailCount = 12;
@@ -1648,7 +1679,10 @@ function launchFirework(position) {
     trailPositions[i * 3 + 2] = position.z;
   }
   const trailGeometry = new THREE.BufferGeometry();
-  trailGeometry.setAttribute('position', new THREE.BufferAttribute(trailPositions.slice(), 3));
+  trailGeometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(trailPositions.slice(), 3),
+  );
   const trailMaterial = new THREE.PointsMaterial({
     color: 0xffffaa,
     size: 0.6,
@@ -1673,7 +1707,7 @@ function launchFirework(position) {
   const explodePos = new THREE.Vector3(
     position.x + (Math.random() - 0.5) * 3,
     position.y + riseHeight,
-    position.z + (Math.random() - 0.5) * 3
+    position.z + (Math.random() - 0.5) * 3,
   );
 
   for (let i = 0; i < particleCount; i++) {
@@ -1700,8 +1734,14 @@ function launchFirework(position) {
   }
 
   const explosionGeometry = new THREE.BufferGeometry();
-  explosionGeometry.setAttribute('position', new THREE.BufferAttribute(explosionPositions.slice(), 3));
-  explosionGeometry.setAttribute('color', new THREE.BufferAttribute(explosionColors, 3));
+  explosionGeometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(explosionPositions.slice(), 3),
+  );
+  explosionGeometry.setAttribute(
+    "color",
+    new THREE.BufferAttribute(explosionColors, 3),
+  );
 
   const explosionMaterial = new THREE.PointsMaterial({
     size: 0.8,
@@ -1726,7 +1766,7 @@ function launchFirework(position) {
     explodePos,
     riseHeight,
     riseSpeed,
-    riseY: 0,       // 当前上升高度，从0开始
+    riseY: 0, // 当前上升高度，从0开始
     risePhase: true,
     exploded: false,
     lifetime: 0,
@@ -1747,7 +1787,7 @@ function launchFirework(position) {
  */
 function playFireworkSound(riseSpeed, riseHeight) {
   if (!audioContext) return;
-  if (audioContext.state === 'suspended') return;
+  if (audioContext.state === "suspended") return;
 
   // 上升时长（与 riseHeight/riseSpeed 对应，约 = riseHeight/riseSpeed 帧 × 16ms）
   const riseDuration = (riseHeight / riseSpeed) * 0.016;
@@ -1759,7 +1799,11 @@ function playFireworkSound(riseSpeed, riseHeight) {
   // 噪声爆炸冲击
   const burstDuration = 0.6;
   const bufSize = Math.floor(audioContext.sampleRate * burstDuration);
-  const noiseBuffer = audioContext.createBuffer(1, bufSize, audioContext.sampleRate);
+  const noiseBuffer = audioContext.createBuffer(
+    1,
+    bufSize,
+    audioContext.sampleRate,
+  );
   const data = noiseBuffer.getChannelData(0);
   for (let i = 0; i < bufSize; i++) {
     data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, 2); // 指数衰减
@@ -1769,7 +1813,7 @@ function playFireworkSound(riseSpeed, riseHeight) {
 
   // 带通滤波让爆炸声更像真实烟花（去掉极低和极高频）
   const burstFilter = audioContext.createBiquadFilter();
-  burstFilter.type = 'bandpass';
+  burstFilter.type = "bandpass";
   burstFilter.frequency.setValueAtTime(800, explodeAt);
   burstFilter.Q.setValueAtTime(0.5, explodeAt);
 
@@ -1786,7 +1830,7 @@ function playFireworkSound(riseSpeed, riseHeight) {
   // 低频砰击（给爆炸加厚重感）
   const thumpOsc = audioContext.createOscillator();
   const thumpGain = audioContext.createGain();
-  thumpOsc.type = 'sine';
+  thumpOsc.type = "sine";
   thumpOsc.frequency.setValueAtTime(80, explodeAt);
   thumpOsc.frequency.exponentialRampToValueAtTime(30, explodeAt + 0.3);
   thumpGain.gain.setValueAtTime(0.3, explodeAt);
@@ -1818,11 +1862,14 @@ function updateFireworks() {
           i,
           fw.position.x + (Math.random() - 0.5) * 0.3,
           fw.position.y + fw.riseY - offset,
-          fw.position.z + (Math.random() - 0.5) * 0.3
+          fw.position.z + (Math.random() - 0.5) * 0.3,
         );
       }
       pos.needsUpdate = true;
-      fw.trailMaterial.opacity = Math.max(0, 1 - fw.riseY / fw.riseHeight * 0.3);
+      fw.trailMaterial.opacity = Math.max(
+        0,
+        1 - (fw.riseY / fw.riseHeight) * 0.3,
+      );
 
       // 到达爆炸高度
       if (fw.riseY >= fw.riseHeight) {
@@ -1852,12 +1899,7 @@ function updateFireworks() {
         v.y *= drag;
         v.z *= drag;
 
-        pos.setXYZ(
-          i,
-          pos.getX(i) + v.x,
-          pos.getY(i) + v.y,
-          pos.getZ(i) + v.z
-        );
+        pos.setXYZ(i, pos.getX(i) + v.x, pos.getY(i) + v.y, pos.getZ(i) + v.z);
       }
       pos.needsUpdate = true;
 
@@ -1894,44 +1936,51 @@ function triggerRoadFireworks() {
   fireworksLastLaunchTime = now;
 
   const sideOffset = 11; // 距路中心的横向距离
-  const SLOTS      = 10; // 前方路段分为多少个候选槽
-  const fireCount  = 3 + Math.floor(Math.random() * 3); // 每次触发随机选 3~5 槽
+  const SLOTS = 10; // 前方路段分为多少个候选槽
+  const fireCount = 3 + Math.floor(Math.random() * 3); // 每次触发随机选 3~5 槽
 
   // ---- 沿路线点采集候选发射点 ----
   // 候选点数组：{ x, z, dirX, dirZ }，dirX/Z 为该点处路线的前进方向
   const candidates = [];
 
   const hasRoute =
-    currentRoutePoints.length > 0 && currentRouteIndex < currentRoutePoints.length;
+    currentRoutePoints.length > 0 &&
+    currentRouteIndex < currentRoutePoints.length;
 
   if (hasRoute) {
     // 打车/已生成路线：沿路线点向前最多 120 单位累积距离，均匀采样
-    const maxDist   = 120;
-    const slotSpan  = maxDist / SLOTS;
-    let   accumulated = 0;
-    let   ptIdx = currentRouteIndex;
+    const maxDist = 120;
+    const slotSpan = maxDist / SLOTS;
+    let accumulated = 0;
+    let ptIdx = currentRouteIndex;
 
     // 当前起点：用车辆当前位置
     let prevX = car.position.x;
     let prevZ = car.position.z;
 
-    for (let slot = 0; slot < SLOTS && ptIdx < currentRoutePoints.length; slot++) {
+    for (
+      let slot = 0;
+      slot < SLOTS && ptIdx < currentRoutePoints.length;
+      slot++
+    ) {
       // 目标累积距离：该槽中点 + 随机抖动
-      const targetDist = slotSpan * slot + slotSpan * (0.2 + Math.random() * 0.6);
+      const targetDist =
+        slotSpan * slot + slotSpan * (0.2 + Math.random() * 0.6);
 
       // 沿路线前进直到超过 targetDist
       while (ptIdx < currentRoutePoints.length && accumulated < targetDist) {
-        const np   = currentRoutePoints[ptIdx];
+        const np = currentRoutePoints[ptIdx];
         const segD = Math.hypot(np.x - prevX, np.z - prevZ);
         if (accumulated + segD >= targetDist) {
           // 在本段内插值到 targetDist
-          const t  = (targetDist - accumulated) / segD;
+          const t = (targetDist - accumulated) / segD;
           const sx = prevX + (np.x - prevX) * t;
           const sz = prevZ + (np.z - prevZ) * t;
           // 方向用本段
           const len = segD || 1;
           candidates.push({
-            x: sx, z: sz,
+            x: sx,
+            z: sz,
             dirX: (np.x - prevX) / len,
             dirZ: (np.z - prevZ) / len,
           });
@@ -1950,7 +1999,7 @@ function triggerRoadFireworks() {
     const carAngle = car.rotation.y;
     const sinA = Math.sin(carAngle);
     const cosA = Math.cos(carAngle);
-    const maxDist  = 120;
+    const maxDist = 120;
     const slotSpan = maxDist / SLOTS;
     for (let slot = candidates.length; slot < SLOTS; slot++) {
       const fwd = slotSpan * slot + slotSpan * (0.2 + Math.random() * 0.6);
@@ -1964,14 +2013,12 @@ function triggerRoadFireworks() {
   }
 
   // ---- 随机选槽发射 ----
-  const chosen = candidates
-    .sort(() => Math.random() - 0.5)
-    .slice(0, fireCount);
+  const chosen = candidates.sort(() => Math.random() - 0.5).slice(0, fireCount);
 
   chosen.forEach(({ x, z, dirX, dirZ }) => {
     // 该点的左右方向（垂直于行进方向）
     const jitter = (Math.random() - 0.5) * 3;
-    const off    = sideOffset + jitter;
+    const off = sideOffset + jitter;
     // 左：dir 顺时针旋转 90° → (-dirZ, dirX)
     launchFirework(new THREE.Vector3(x - dirZ * off, 1, z + dirX * off));
     // 右：dir 逆时针旋转 90° → (dirZ, -dirX)
@@ -2023,14 +2070,14 @@ function animate() {
 
   // 更新车辆位置
   if (isNavigating && car) {
-    if (currentTransport === 'taxi') {
+    if (currentTransport === "taxi") {
       // 打车模式：自动按路线前进
       if (currentRouteIndex < currentRoutePoints.length) {
         const targetPoint = currentRoutePoints[currentRouteIndex];
 
         const distance = Math.hypot(
           targetPoint.x - car.position.x,
-          targetPoint.z - car.position.z
+          targetPoint.z - car.position.z,
         );
 
         // 计算到终点的距离
@@ -2038,7 +2085,7 @@ function animate() {
           currentRoutePoints[currentRoutePoints.length - 1];
         const distanceToEnd = Math.hypot(
           finalDestination.x - car.position.x,
-          finalDestination.z - car.position.z
+          finalDestination.z - car.position.z,
         );
 
         // 当接近终点时开始减速（缩短距离避免提前停止）
@@ -2063,7 +2110,7 @@ function animate() {
           const minLookAhead = 8; // 降低最小前瞻距离
           const lookAheadDistance = Math.max(
             minLookAhead,
-            Math.min(maxLookAhead, baseLookAhead * Math.sqrt(distance / 20)) // 使用平方根，让增长更平缓
+            Math.min(maxLookAhead, baseLookAhead * Math.sqrt(distance / 20)), // 使用平方根，让增长更平缓
           );
 
           // 找到前瞻点：从当前目标点开始累积距离
@@ -2080,7 +2127,7 @@ function animate() {
             const nextPoint = currentRoutePoints[lookAheadIndex + 1];
             const segmentDist = Math.hypot(
               nextPoint.x - currentPoint.x,
-              nextPoint.z - currentPoint.z
+              nextPoint.z - currentPoint.z,
             );
             accumulatedDistance += segmentDist;
             lookAheadIndex++;
@@ -2193,23 +2240,23 @@ function onArrival() {
   currentActualSpeed = 0;
 
   // 清理键盘监听器
-  document.removeEventListener('keydown', handleKeyDown);
-  document.removeEventListener('keyup', handleKeyUp);
+  document.removeEventListener("keydown", handleKeyDown);
+  document.removeEventListener("keyup", handleKeyUp);
   keyState = {};
 
   // 清理剩余的路线段
   routeSegments.forEach((segment) => scene.remove(segment));
   routeSegments = [];
 
-  updateStatus('✨ 已到达目的地！');
+  updateStatus("✨ 已到达目的地！");
 
   // 语音播报到达
   const destinationNames = {
-    wedding: '婚礼现场',
-    groom: '新郎家',
-    bride: '新娘家',
+    wedding: "婚礼现场",
+    groom: "新郎家",
+    bride: "新娘家",
   };
-  const destName = destinationNames[selectedDestination] || '目的地';
+  const destName = destinationNames[selectedDestination] || "目的地";
   speak(`已到达${destName}，祝您生活愉快`);
 
   // 停止烟花效果
@@ -2220,9 +2267,9 @@ function onArrival() {
 
   // 移动端：隐藏虚拟方向键
   if (isMobile) {
-    const virtualJoystick = document.getElementById('virtualJoystick');
+    const virtualJoystick = document.getElementById("virtualJoystick");
     if (virtualJoystick) {
-      virtualJoystick.classList.remove('active');
+      virtualJoystick.classList.remove("active");
     }
   }
 
@@ -2238,21 +2285,21 @@ function initCarousel(carouselEl) {
   const id = carouselEl.id;
   if (!id) return;
 
-  const track = carouselEl.querySelector('.carousel-track');
-  const slides = carouselEl.querySelectorAll('.carousel-slide');
-  const dotsWrap = carouselEl.querySelector('.carousel-dots');
-  const prevBtn = carouselEl.querySelector('.carousel-prev');
-  const nextBtn = carouselEl.querySelector('.carousel-next');
+  const track = carouselEl.querySelector(".carousel-track");
+  const slides = carouselEl.querySelectorAll(".carousel-slide");
+  const dotsWrap = carouselEl.querySelector(".carousel-dots");
+  const prevBtn = carouselEl.querySelector(".carousel-prev");
+  const nextBtn = carouselEl.querySelector(".carousel-next");
   const total = slides.length;
 
   if (total === 0) return;
 
   // 生成指示点
-  dotsWrap.innerHTML = '';
+  dotsWrap.innerHTML = "";
   slides.forEach((_, i) => {
-    const dot = document.createElement('span');
-    dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
-    dot.addEventListener('click', () => goTo(i));
+    const dot = document.createElement("span");
+    dot.className = "carousel-dot" + (i === 0 ? " active" : "");
+    dot.addEventListener("click", () => goTo(i));
     dotsWrap.appendChild(dot);
   });
 
@@ -2261,49 +2308,73 @@ function initCarousel(carouselEl) {
   function goTo(idx) {
     current = (idx + total) % total;
     track.style.transform = `translateX(-${current * 100}%)`;
-    dotsWrap.querySelectorAll('.carousel-dot').forEach((d, i) => {
-      d.classList.toggle('active', i === current);
+    dotsWrap.querySelectorAll(".carousel-dot").forEach((d, i) => {
+      d.classList.toggle("active", i === current);
     });
     _carousels[id].index = current;
   }
 
   // 按钮事件（阻止冒泡，避免触发 modal 遮罩关闭）
-  prevBtn.addEventListener('click', (e) => { e.stopPropagation(); goTo(current - 1); });
-  nextBtn.addEventListener('click', (e) => { e.stopPropagation(); goTo(current + 1); });
+  prevBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    goTo(current - 1);
+  });
+  nextBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    goTo(current + 1);
+  });
 
   // 触摸滑动支持（阻止横滑触发浏览器页面返回）
   let touchStartX = 0;
   let touchStartY = 0;
   let isHorizontalSwipe = false;
-  carouselEl.addEventListener('touchstart', (e) => {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-    isHorizontalSwipe = false;
-  }, { passive: true });
-  carouselEl.addEventListener('touchmove', (e) => {
-    const dx = e.touches[0].clientX - touchStartX;
-    const dy = e.touches[0].clientY - touchStartY;
-    // 判断为横向滑动时阻止默认行为（防止触发页面返回/前进手势）
-    if (!isHorizontalSwipe && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 5) {
-      isHorizontalSwipe = true;
-    }
-    if (isHorizontalSwipe) {
-      e.preventDefault();
-    }
-  }, { passive: false });
-  carouselEl.addEventListener('touchend', (e) => {
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(dx) > 40) goTo(current + (dx < 0 ? 1 : -1));
-  }, { passive: true });
+  carouselEl.addEventListener(
+    "touchstart",
+    (e) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      isHorizontalSwipe = false;
+    },
+    { passive: true },
+  );
+  carouselEl.addEventListener(
+    "touchmove",
+    (e) => {
+      const dx = e.touches[0].clientX - touchStartX;
+      const dy = e.touches[0].clientY - touchStartY;
+      // 判断为横向滑动时阻止默认行为（防止触发页面返回/前进手势）
+      if (
+        !isHorizontalSwipe &&
+        Math.abs(dx) > Math.abs(dy) &&
+        Math.abs(dx) > 5
+      ) {
+        isHorizontalSwipe = true;
+      }
+      if (isHorizontalSwipe) {
+        e.preventDefault();
+      }
+    },
+    { passive: false },
+  );
+  carouselEl.addEventListener(
+    "touchend",
+    (e) => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 40) goTo(current + (dx < 0 ? 1 : -1));
+    },
+    { passive: true },
+  );
 
   // 先初始化记录（goTo 里会用到）
   _carousels[id] = { index: 0, timer: null, total };
 
   // 初始化到第 0 张（无动画）
-  track.style.transition = 'none';
+  track.style.transition = "none";
   goTo(0);
   // 恢复过渡
-  requestAnimationFrame(() => { track.style.transition = ''; });
+  requestAnimationFrame(() => {
+    track.style.transition = "";
+  });
 
   // 自动播放（5s 切换）
   const timer = setInterval(() => goTo(current + 1), 5000);
@@ -2325,25 +2396,25 @@ function showDestinationInfo(destinationType = null) {
   // 根据目的地类型选择对应的弹窗
   let modalId;
   switch (destType) {
-    case 'wedding':
-      modalId = 'weddingModal';
+    case "wedding":
+      modalId = "weddingModal";
       break;
-    case 'groom':
-      modalId = 'groomModal';
+    case "groom":
+      modalId = "groomModal";
       break;
-    case 'bride':
-      modalId = 'brideModal';
+    case "bride":
+      modalId = "brideModal";
       break;
     default:
-      modalId = 'weddingModal';
+      modalId = "weddingModal";
   }
 
   const modal = document.getElementById(modalId);
   if (!modal) return;
 
   // 只为婚礼现场弹窗更新LED文字（计算百年好合倒计时）
-  if (destType === 'wedding') {
-    const startDate = new Date('2016-05-17');
+  if (destType === "wedding") {
+    const startDate = new Date("2016-05-17");
     const now = new Date();
     const diffTime = Math.abs(now - startDate);
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
@@ -2353,7 +2424,7 @@ function showDestinationInfo(destinationType = null) {
     const remainingYears = Math.floor(remainingDays / 365);
     const remainingDaysInYear = remainingDays % 365;
 
-    const ledContents = modal.querySelectorAll('.led-content');
+    const ledContents = modal.querySelectorAll(".led-content");
     const ledText = `💒 执子之手，与子偕老 · 离百年好合还有${remainingYears}年${remainingDaysInYear}天 💒`;
     ledContents.forEach((span) => {
       span.textContent = ledText;
@@ -2361,10 +2432,10 @@ function showDestinationInfo(destinationType = null) {
   }
 
   // 显示弹窗
-  modal.style.display = 'flex';
+  modal.style.display = "flex";
 
   // 启动轮播
-  const carouselEl = modal.querySelector('.carousel');
+  const carouselEl = modal.querySelector(".carousel");
   if (carouselEl) initCarousel(carouselEl);
 
   // 阻止弹窗内横向滑动触发浏览器页面返回/前进手势
@@ -2379,19 +2450,23 @@ function showDestinationInfo(destinationType = null) {
   function _onModalTouchMove(e) {
     const dx = e.touches[0].clientX - _modalTouchStartX;
     const dy = e.touches[0].clientY - _modalTouchStartY;
-    if (!_modalIsHorizontal && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 5) {
+    if (
+      !_modalIsHorizontal &&
+      Math.abs(dx) > Math.abs(dy) &&
+      Math.abs(dx) > 5
+    ) {
       _modalIsHorizontal = true;
     }
     if (_modalIsHorizontal) {
       e.preventDefault();
     }
   }
-  modal.addEventListener('touchstart', _onModalTouchStart, { passive: true });
-  modal.addEventListener('touchmove', _onModalTouchMove, { passive: false });
+  modal.addEventListener("touchstart", _onModalTouchStart, { passive: true });
+  modal.addEventListener("touchmove", _onModalTouchMove, { passive: false });
   // 存到 modal 上，关闭时解绑
   modal._removeTouchGuard = () => {
-    modal.removeEventListener('touchstart', _onModalTouchStart);
-    modal.removeEventListener('touchmove', _onModalTouchMove);
+    modal.removeEventListener("touchstart", _onModalTouchStart);
+    modal.removeEventListener("touchmove", _onModalTouchMove);
     delete modal._removeTouchGuard;
   };
 
@@ -2407,14 +2482,14 @@ function showDestinationInfo(destinationType = null) {
 window.closeModal = function (destinationType) {
   let modalId;
   switch (destinationType) {
-    case 'wedding':
-      modalId = 'weddingModal';
+    case "wedding":
+      modalId = "weddingModal";
       break;
-    case 'groom':
-      modalId = 'groomModal';
+    case "groom":
+      modalId = "groomModal";
       break;
-    case 'bride':
-      modalId = 'brideModal';
+    case "bride":
+      modalId = "brideModal";
       break;
     default:
       return;
@@ -2424,28 +2499,28 @@ window.closeModal = function (destinationType) {
   if (!modal) return;
 
   // 销毁轮播
-  const carouselEl = modal.querySelector('.carousel');
+  const carouselEl = modal.querySelector(".carousel");
   destroyCarousel(carouselEl);
 
   // 解绑触摸防返回监听
   if (modal._removeTouchGuard) modal._removeTouchGuard();
 
-  modal.classList.add('closing');
+  modal.classList.add("closing");
   setTimeout(() => {
-    modal.style.display = 'none';
-    modal.classList.remove('closing');
+    modal.style.display = "none";
+    modal.classList.remove("closing");
 
     // 重新显示出行方案框（仅在实际导航到达时）
-    const controlsPanel = document.getElementById('controlsPanel');
+    const controlsPanel = document.getElementById("controlsPanel");
     if (controlsPanel) {
-      controlsPanel.style.display = 'block';
+      controlsPanel.style.display = "block";
     }
 
     // 移动端：同时显示状态框
     if (isMobile) {
-      const statusBox = document.getElementById('statusBox');
+      const statusBox = document.getElementById("statusBox");
       if (statusBox) {
-        statusBox.style.display = 'flex';
+        statusBox.style.display = "flex";
       }
     }
   }, 300);
@@ -2453,14 +2528,13 @@ window.closeModal = function (destinationType) {
 
 // 测试方法：依次显示所有三个目的地弹窗
 window.testDestinationModals = function () {
-  showDestinationInfo('wedding');
-  setTimeout(() => showDestinationInfo('groom'), 1000);
-  setTimeout(() => showDestinationInfo('bride'), 2000);
+  showDestinationInfo("wedding");
+  setTimeout(() => showDestinationInfo("groom"), 1000);
+  setTimeout(() => showDestinationInfo("bride"), 2000);
 };
 
 // 将showDestinationInfo暴露到全局，方便测试
 window.showDestinationInfo = showDestinationInfo;
-
 
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -2471,78 +2545,80 @@ function onWindowResize() {
 // ========== 虚拟方向键控制 ==========
 function initVirtualJoystick() {
   const joystickBtns = document.querySelectorAll(
-    '.joystick-btn:not(.disabled)'
+    ".joystick-btn:not(.disabled)",
   );
 
   joystickBtns.forEach((btn) => {
-    const key = btn.getAttribute('data-key');
+    const key = btn.getAttribute("data-key");
     if (!key) return;
 
     // 触摸开始
-    btn.addEventListener('touchstart', (e) => {
+    btn.addEventListener("touchstart", (e) => {
       e.preventDefault();
       keyState[key] = true;
-      btn.style.background = 'rgba(255, 105, 180, 0.6)';
+      btn.style.background = "rgba(255, 105, 180, 0.6)";
     });
 
     // 触摸结束
-    btn.addEventListener('touchend', (e) => {
+    btn.addEventListener("touchend", (e) => {
       e.preventDefault();
       keyState[key] = false;
-      btn.style.background = 'rgba(0, 0, 0, 0.6)';
+      btn.style.background = "rgba(0, 0, 0, 0.6)";
     });
 
     // 触摸取消（手指移出按钮）
-    btn.addEventListener('touchcancel', (e) => {
+    btn.addEventListener("touchcancel", (e) => {
       e.preventDefault();
       keyState[key] = false;
-      btn.style.background = 'rgba(0, 0, 0, 0.6)';
+      btn.style.background = "rgba(0, 0, 0, 0.6)";
     });
 
     // 鼠标事件（用于桌面测试）
-    btn.addEventListener('mousedown', (e) => {
+    btn.addEventListener("mousedown", (e) => {
       e.preventDefault();
       keyState[key] = true;
-      btn.style.background = 'rgba(255, 105, 180, 0.6)';
+      btn.style.background = "rgba(255, 105, 180, 0.6)";
     });
 
-    btn.addEventListener('mouseup', (e) => {
+    btn.addEventListener("mouseup", (e) => {
       e.preventDefault();
       keyState[key] = false;
-      btn.style.background = 'rgba(0, 0, 0, 0.6)';
+      btn.style.background = "rgba(0, 0, 0, 0.6)";
     });
 
-    btn.addEventListener('mouseleave', () => {
+    btn.addEventListener("mouseleave", () => {
       keyState[key] = false;
-      btn.style.background = 'rgba(0, 0, 0, 0.6)';
+      btn.style.background = "rgba(0, 0, 0, 0.6)";
     });
   });
 }
 
 // ========== 事件绑定 ==========
-window.addEventListener('load', () => {
+window.addEventListener("load", () => {
   initThreeJS();
 
   // 绑定UI事件
   document
-    .getElementById('taxiBtn')
-    .addEventListener('click', () => selectTransport('taxi'));
+    .getElementById("taxiBtn")
+    .addEventListener("click", () => selectTransport("taxi"));
   document
-    .getElementById('driveBtn')
-    .addEventListener('click', () => selectTransport('drive'));
+    .getElementById("driveBtn")
+    .addEventListener("click", () => selectTransport("drive"));
   document
-    .getElementById('destinationSelect')
-    .addEventListener('change', updateDestination);
+    .getElementById("destinationSelect")
+    .addEventListener("change", updateDestination);
   document
-    .getElementById('generateBtn')
-    .addEventListener('click', generateRoute);
-  document.getElementById('startBtn').addEventListener('click', startJourney);
+    .getElementById("generateBtn")
+    .addEventListener("click", generateRoute);
+  document.getElementById("startBtn").addEventListener("click", startJourney);
 
   // 初始化虚拟方向键
   initVirtualJoystick();
 
   // 监听窗口大小变化，更新移动端状态
-  window.addEventListener('resize', () => {
+  window.addEventListener("resize", () => {
     detectMobile();
   });
 });
+
+showDestinationInfo("bride");
