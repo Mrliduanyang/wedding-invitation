@@ -168,8 +168,8 @@ async function initThreeJS() {
 
   // 场景设置
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x87ceeb);
-  scene.fog = new THREE.Fog(0x87ceeb, 150, 500);
+  scene.background = new THREE.Color(0xc9eeff);
+  scene.fog = new THREE.Fog(0xc9eeff, 180, 520);
 
   // 摄像头
   camera = new THREE.PerspectiveCamera(
@@ -200,11 +200,11 @@ async function initThreeJS() {
   controls.minPolarAngle = 0; // 可以完全向上看
 
   // 光源
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  const ambientLight = new THREE.AmbientLight(0xfff5e0, 0.85); // 暖白光，增强亮度
   scene.add(ambientLight);
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-  directionalLight.position.set(100, 100, 100);
+  const directionalLight = new THREE.DirectionalLight(0xfffbe8, 1.1); // 暖黄阳光，更明亮
+  directionalLight.position.set(100, 150, 80);
   directionalLight.castShadow = true;
   directionalLight.shadow.mapSize.width = 2048;
   directionalLight.shadow.mapSize.height = 2048;
@@ -234,7 +234,7 @@ async function createCityScene() {
   // 地面 - 扩大范围
   const groundGeometry = new THREE.PlaneGeometry(600, 600);
   const groundMaterial = new THREE.MeshLambertMaterial({
-    color: 0x4cd964, // 鲜亮翠绿色
+    color: 0x5ee87a,  // 亮草绿，更清新
   });
   const ground = new THREE.Mesh(groundGeometry, groundMaterial);
   ground.rotation.x = -Math.PI / 2;
@@ -256,8 +256,8 @@ async function createCityScene() {
 }
 
 function createRoads() {
-  const roadMaterial = new THREE.MeshLambertMaterial({ color: 0x444444 });
-  const lineMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+  const roadMaterial = new THREE.MeshLambertMaterial({ color: 0x6b6b82 }); // 蓝灰色路面，更欢快
+  const lineMaterial = new THREE.MeshLambertMaterial({ color: 0xffee44 }); // 明黄中心线
 
   // 创建更多道路网格
   const roadWidth = 15;
@@ -611,18 +611,35 @@ function createFallbackVehicle(carGroup) {
 }
 
 function createBalloons() {
-  const colors = [0xff69b4, 0xff1493, 0xffc0cb, 0xffe4e1];
-  for (let i = 0; i < 8; i++) {
-    const geometry = new THREE.SphereGeometry(3, 16, 16);
+  // 颜色 + 对应自发光色（emissive 约为主色的 30%，保持鲜亮不发灰）
+  const colorPairs = [
+    { color: 0xff4da6, emissive: 0x7a1040 }, // 玫粉
+    { color: 0xff85c2, emissive: 0x6e1535 }, // 亮粉
+    { color: 0xffd700, emissive: 0x806800 }, // 金黄
+    { color: 0xff9933, emissive: 0x7a3d00 }, // 亮橙
+    { color: 0x33bbff, emissive: 0x005580 }, // 天蓝
+    { color: 0x33e8a0, emissive: 0x007540 }, // 翠绿
+    { color: 0xcc66ff, emissive: 0x5c007a }, // 亮紫
+    { color: 0xff6655, emissive: 0x801800 }, // 珊瑚红
+    { color: 0x44ddbb, emissive: 0x006655 }, // 青绿
+    { color: 0xffcc33, emissive: 0x806000 }, // 琥珀黄
+  ];
+  for (let i = 0; i < 18; i++) {
+    const size = 2.5 + Math.random() * 2; // 大小随机 2.5~4.5
+    const geometry = new THREE.SphereGeometry(size, 16, 16);
+    const pair = colorPairs[i % colorPairs.length];
     const material = new THREE.MeshPhongMaterial({
-      color: colors[i % colors.length],
+      color: pair.color,
+      emissive: pair.emissive,
+      emissiveIntensity: 0.5,
+      shininess: 120,
     });
     const balloon = new THREE.Mesh(geometry, material);
 
     balloon.position.set(
-      (Math.random() - 0.5) * 200,
-      50 + Math.random() * 80,
-      (Math.random() - 0.5) * 200,
+      (Math.random() - 0.5) * 340,   // 更大范围分布
+      45 + Math.random() * 110,       // 高度 45~155，层次更丰富
+      (Math.random() - 0.5) * 340,
     );
 
     balloon.userData.initialPos = balloon.position.clone();
@@ -637,7 +654,7 @@ function createBalloons() {
 function createSkybox() {
   const skyGeometry = new THREE.SphereGeometry(400, 32, 32);
   const skyMaterial = new THREE.MeshBasicMaterial({
-    color: 0x87ceeb,
+    color: 0xc9eeff, // 与场景背景色一致的明亮天蓝
     side: THREE.BackSide,
   });
   const sky = new THREE.Mesh(skyGeometry, skyMaterial);
