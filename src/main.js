@@ -2599,30 +2599,29 @@ async function initWxShare() {
       timestamp,
       nonceStr,
       signature,
-      jsApiList: ["updateAppMessageShareData", "updateTimelineShareData"],
+      // 旧版接口：订阅号/未认证服务号均可使用，无需特殊权限
+      jsApiList: ["onMenuShareAppMessage", "onMenuShareTimeline"],
     });
 
     wx.ready(() => {
-      // 分享给朋友
-      wx.updateAppMessageShareData({
+      const shareToFriend = {
         title: WX_SHARE_CONFIG.title,
         desc: WX_SHARE_CONFIG.desc,
         link: WX_SHARE_CONFIG.link,
         imgUrl: WX_SHARE_CONFIG.imgUrl,
-        success() {
-          console.log("[WxShare] 分享给朋友配置成功");
-        },
-      });
-
-      // 分享到朋友圈
-      wx.updateTimelineShareData({
+        success() { console.log("[WxShare] 分享给朋友配置成功"); },
+        fail(res) { console.warn("[WxShare] 分享给朋友配置失败", res); },
+      };
+      const shareToTimeline = {
         title: WX_SHARE_CONFIG.title,
         link: WX_SHARE_CONFIG.link,
         imgUrl: WX_SHARE_CONFIG.imgUrl,
-        success() {
-          console.log("[WxShare] 分享到朋友圈配置成功");
-        },
-      });
+        success() { console.log("[WxShare] 分享到朋友圈配置成功"); },
+        fail(res) { console.warn("[WxShare] 分享到朋友圈配置失败", res); },
+      };
+
+      wx.onMenuShareAppMessage(shareToFriend);
+      wx.onMenuShareTimeline(shareToTimeline);
     });
 
     wx.error((res) => {
