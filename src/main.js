@@ -2139,7 +2139,7 @@ function animate() {
           while (
             lookAheadIndex + 1 < currentRoutePoints.length &&
             accumulatedDistance < lookAheadDistance
-          ) {
+            ) {
             const currentPoint = currentRoutePoints[lookAheadIndex];
             const nextPoint = currentRoutePoints[lookAheadIndex + 1];
             const segmentDist = Math.hypot(
@@ -2599,29 +2599,30 @@ async function initWxShare() {
       timestamp,
       nonceStr,
       signature,
-      // 旧版接口：订阅号/未认证服务号均可使用，无需特殊权限
-      jsApiList: ["onMenuShareAppMessage", "onMenuShareTimeline"],
+      jsApiList: ["updateAppMessageShareData", "updateTimelineShareData"],
     });
 
     wx.ready(() => {
-      const shareToFriend = {
+      // 分享给朋友
+      wx.updateAppMessageShareData({
         title: WX_SHARE_CONFIG.title,
         desc: WX_SHARE_CONFIG.desc,
         link: WX_SHARE_CONFIG.link,
         imgUrl: WX_SHARE_CONFIG.imgUrl,
-        success() { console.log("[WxShare] 分享给朋友配置成功"); },
-        fail(res) { console.warn("[WxShare] 分享给朋友配置失败", res); },
-      };
-      const shareToTimeline = {
+        success() {
+          console.log("[WxShare] 分享给朋友配置成功");
+        },
+      });
+
+      // 分享到朋友圈
+      wx.updateTimelineShareData({
         title: WX_SHARE_CONFIG.title,
         link: WX_SHARE_CONFIG.link,
         imgUrl: WX_SHARE_CONFIG.imgUrl,
-        success() { console.log("[WxShare] 分享到朋友圈配置成功"); },
-        fail(res) { console.warn("[WxShare] 分享到朋友圈配置失败", res); },
-      };
-
-      wx.onMenuShareAppMessage(shareToFriend);
-      wx.onMenuShareTimeline(shareToTimeline);
+        success() {
+          console.log("[WxShare] 分享到朋友圈配置成功");
+        },
+      });
     });
 
     wx.error((res) => {
