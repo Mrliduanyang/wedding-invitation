@@ -2582,16 +2582,11 @@ const WX_SHARE_CONFIG = {
 };
 
 async function initWxShare() {
-  console.log("[WxShare] initWxShare 开始执行, UA:", navigator.userAgent);
-  if (!isWeChat()) {
-    console.warn("[WxShare] 非微信浏览器，跳过");
-    return;
-  }
+  if (!isWeChat()) return; // 非微信浏览器跳过
 
   try {
     // 向服务端请求签名
     const url = location.href.split("#")[0];
-    console.log("[WxShare] 签名 URL:", url); // 查看此值是否和服务端签名用的 URL 一致
     const resp = await fetch(
       `${WX_SIGN_API_URL}?url=${encodeURIComponent(url)}`
     );
@@ -2599,42 +2594,35 @@ async function initWxShare() {
     const { appId, timestamp, nonceStr, signature } = await resp.json();
 
     wx.config({
-      debug: true, // 调试期间开启，上线前改回 false
+      debug: true,
       appId,
       timestamp,
       nonceStr,
       signature,
-      jsApiList: [
-        "updateAppMessageShareData",
-        "updateTimelineShareData",
-        // 旧版兜底（部分低版本微信仍使用这两个接口）
-        "onMenuShareAppMessage",
-        "onMenuShareTimeline",
-      ],
+      jsApiList: ["updateAppMessageShareData", "updateTimelineShareData"],
     });
 
     wx.ready(() => {
-      const shareToFriend = {
+      // 分享给朋友
+      wx.updateAppMessageShareData({
         title: WX_SHARE_CONFIG.title,
         desc: WX_SHARE_CONFIG.desc,
         link: WX_SHARE_CONFIG.link,
         imgUrl: WX_SHARE_CONFIG.imgUrl,
-        success() { console.log("[WxShare] 分享给朋友配置成功"); },
-      };
-      const shareToTimeline = {
+        success() {
+          console.log("[WxShare] 分享给朋友配置成功");
+        },
+      });
+
+      // 分享到朋友圈
+      wx.updateTimelineShareData({
         title: WX_SHARE_CONFIG.title,
         link: WX_SHARE_CONFIG.link,
         imgUrl: WX_SHARE_CONFIG.imgUrl,
-        success() { console.log("[WxShare] 分享到朋友圈配置成功"); },
-      };
-
-      // 新版接口
-      wx.updateAppMessageShareData(shareToFriend);
-      wx.updateTimelineShareData(shareToTimeline);
-
-      // 旧版兜底
-      if (wx.onMenuShareAppMessage) wx.onMenuShareAppMessage(shareToFriend);
-      if (wx.onMenuShareTimeline) wx.onMenuShareTimeline(shareToTimeline);
+        success() {
+          console.log("[WxShare] 分享到朋友圈配置成功");
+        },
+      });
     });
 
     wx.error((res) => {
@@ -2725,13 +2713,12 @@ window.addEventListener("load", () => {
   // 初始化虚拟方向键
   initVirtualJoystick();
 
+  // 初始化微信分享
+  initWxShare();
+
   // 监听窗口大小变化，更新移动端状态
   window.addEventListener("resize", () => {
     detectMobile();
   });
 });
-
-// 微信分享在模块加载时立即初始化，不等待 load 事件
-// （type="module" 脚本本身已是 defer，DOM 已就绪）
-initWxShare();
 
