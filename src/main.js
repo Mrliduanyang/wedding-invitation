@@ -2684,13 +2684,23 @@ function isWeChat() {
  * 成功后显示微信地图按钮
  */
 async function initWxConfig() {
-  if (!isWeChat()) return;
+  console.log("[WxConfig] 开始初始化，isWeChat =", isWeChat());
+  if (!isWeChat()) {
+    console.log("[WxConfig] 非微信环境，跳过初始化");
+    return;
+  }
 
   try {
     const url = location.href.split("#")[0];
+    console.log("[WxConfig] 请求签名，URL =", url);
+
     const resp = await fetch(`${WX_SIGN_API_URL}?url=${encodeURIComponent(url)}`);
+    console.log("[WxConfig] 签名接口响应 status =", resp.status);
     if (!resp.ok) throw new Error(`签名接口失败: ${resp.status}`);
-    const { appId, timestamp, nonceStr, signature } = await resp.json();
+
+    const data = await resp.json();
+    console.log("[WxConfig] 签名数据 =", JSON.stringify(data));
+    const { appId, timestamp, nonceStr, signature } = data;
 
     wx.config({
       debug: true,
@@ -2701,9 +2711,16 @@ async function initWxConfig() {
       jsApiList: ["openLocation"],
     });
 
-    wx.ready(() => {});
+    wx.ready(() => {
+      console.log("[WxConfig] wx.ready 触发，JSSDK 初始化成功");
+    });
+
+    wx.error((res) => {
+      console.error("[WxConfig] wx.error 触发 =", JSON.stringify(res));
+    });
 
   } catch (err) {
+    console.error("[WxConfig] 初始化异常 =", err.message);
   }
 }
 
@@ -2711,14 +2728,20 @@ async function initWxConfig() {
  * 调起微信内置地图查看位置
  */
 window.openWxLocation = function () {
-  if (typeof wx === "undefined") return;
-  wx.openLocation({
+  console.log("[WxLocation] 点击，wx 是否存在 =", typeof wx !== "undefined");
+  if (typeof wx === "undefined") {
+    console.warn("[WxLocation] wx 未定义，无法调起地图");
+    return;
+  }
+  const loc = {
     latitude: WEDDING_LOCATION.latitude,
     longitude: WEDDING_LOCATION.longitude,
     name: WEDDING_LOCATION.name,
     address: WEDDING_LOCATION.address,
     scale: WEDDING_LOCATION.scale,
-  });
+  };
+  console.log("[WxLocation] 调用 wx.openLocation =", JSON.stringify(loc));
+  wx.openLocation(loc);
 };
 
 // 页面加载后初始化

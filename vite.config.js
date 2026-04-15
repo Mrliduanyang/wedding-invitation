@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from "vite";
 
 export default defineConfig({
   // Hugo static 目录的访问路径
@@ -8,9 +8,9 @@ export default defineConfig({
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: true, // 移除 console
+        drop_console: false, // 保留 console（配合 vConsole 调试）
         drop_debugger: true, // 移除 debugger
-        pure_funcs: ['console.log'], // 移除 console.log
+        pure_funcs: [], // 保留 console.log
       },
     },
     // 分包策略
