@@ -2587,6 +2587,7 @@ async function initWxShare() {
   try {
     // 向服务端请求签名
     const url = location.href.split("#")[0];
+    console.log("[WxShare] 签名 URL:", url); // 查看此值是否和服务端签名用的 URL 一致
     const resp = await fetch(
       `${WX_SIGN_API_URL}?url=${encodeURIComponent(url)}`
     );
