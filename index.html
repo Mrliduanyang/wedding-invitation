@@ -8,15 +8,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>💒 王莹 & 李端阳婚礼邀请</title>
     <!-- 微信/社交分享 meta 标签（无需 JSSDK 权限） -->
-    <meta
-      name="description"
-      content="2026年5月18日，吃席吃席！"
-    />
+    <meta name="description" content="2026年5月18日，吃席吃席！" />
     <meta property="og:title" content="💒 王莹 & 李端阳婚礼邀请" />
-    <meta
-      property="og:description"
-      content="2026年5月18日，吃席吃席！"
-    />
+    <meta property="og:description" content="2026年5月18日，吃席吃席！" />
     <meta
       property="og:image"
       content="https://duanyang.cool/invitation/wedding-photos/wedding/1.webp"
@@ -217,109 +211,155 @@
           </div>
         </div>
 
-        <!-- 主体内容 -->
-        <div class="modal-main">
-          <!-- 左侧：轮播图 -->
-          <div class="modal-photo">
-            <div class="carousel" id="carousel-wedding">
-              <div class="carousel-track">
-                <div class="carousel-slide">
-                  <img
-                    src="./wedding-photos/wedding/1.webp"
-                    alt="婚礼照片1"
-                    loading="lazy"
-                  />
+        <!-- 页面：婚礼信息 -->
+        <div class="wedding-page active" id="weddingPageInfo">
+          <div class="modal-main">
+            <!-- 左侧：轮播图 -->
+            <div class="modal-photo">
+              <div class="carousel" id="carousel-wedding">
+                <div class="carousel-track">
+                  <div class="carousel-slide">
+                    <img
+                      src="./wedding-photos/wedding/1.webp"
+                      alt="婚礼照片1"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div class="carousel-slide">
+                    <img
+                      src="./wedding-photos/wedding/2.webp"
+                      alt="婚礼照片2"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div class="carousel-slide">
+                    <img
+                      src="./wedding-photos/wedding/3.webp"
+                      alt="婚礼照片3"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div class="carousel-slide">
+                    <img
+                      src="./wedding-photos/wedding/4.webp"
+                      alt="婚礼照片4"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div class="carousel-slide">
+                    <img
+                      src="./wedding-photos/wedding/5.webp"
+                      alt="婚礼照片5"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div class="carousel-slide">
+                    <img
+                      src="./wedding-photos/wedding/6.webp"
+                      alt="婚礼照片6"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div class="carousel-slide">
+                    <img
+                      src="./wedding-photos/wedding/7.webp"
+                      alt="婚礼照片7"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div class="carousel-slide">
+                    <img
+                      src="./wedding-photos/wedding/8.webp"
+                      alt="婚礼照片8"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div class="carousel-slide">
+                    <img
+                      src="./wedding-photos/wedding/9.webp"
+                      alt="婚礼照片9"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div class="carousel-slide">
+                    <img
+                      src="./wedding-photos/wedding/10.webp"
+                      alt="婚礼照片10"
+                      loading="lazy"
+                    />
+                  </div>
                 </div>
-                <div class="carousel-slide">
-                  <img
-                    src="./wedding-photos/wedding/2.webp"
-                    alt="婚礼照片2"
-                    loading="lazy"
-                  />
-                </div>
-                <div class="carousel-slide">
-                  <img
-                    src="./wedding-photos/wedding/3.webp"
-                    alt="婚礼照片3"
-                    loading="lazy"
-                  />
-                </div>
-                <div class="carousel-slide">
-                  <img
-                    src="./wedding-photos/wedding/4.webp"
-                    alt="婚礼照片4"
-                    loading="lazy"
-                  />
-                </div>
-                <div class="carousel-slide">
-                  <img
-                    src="./wedding-photos/wedding/5.webp"
-                    alt="婚礼照片5"
-                    loading="lazy"
-                  />
-                </div>
-                <div class="carousel-slide">
-                  <img
-                    src="./wedding-photos/wedding/6.webp"
-                    alt="婚礼照片6"
-                    loading="lazy"
-                  />
-                </div>
-                <div class="carousel-slide">
-                  <img
-                    src="./wedding-photos/wedding/7.webp"
-                    alt="婚礼照片7"
-                    loading="lazy"
-                  />
-                </div>
-                <div class="carousel-slide">
-                  <img
-                    src="./wedding-photos/wedding/8.webp"
-                    alt="婚礼照片8"
-                    loading="lazy"
-                  />
-                </div>
-                <div class="carousel-slide">
-                  <img
-                    src="./wedding-photos/wedding/9.webp"
-                    alt="婚礼照片9"
-                    loading="lazy"
-                  />
-                </div>
-                <div class="carousel-slide">
-                  <img
-                    src="./wedding-photos/wedding/10.webp"
-                    alt="婚礼照片10"
-                    loading="lazy"
-                  />
+                <div class="carousel-btn carousel-prev">‹</div>
+                <div class="carousel-btn carousel-next">›</div>
+                <div class="carousel-dots"></div>
+              </div>
+            </div>
+
+            <!-- 右侧：宴席信息 -->
+            <div class="modal-info">
+              <div class="info-title">
+                <span class="info-icon">🎉</span>
+                <h2>婚礼地址</h2>
+              </div>
+
+              <div class="info-details">
+                <div class="info-item">
+                  <div class="info-label">
+                    <span class="label-icon">📍</span>
+                    时间&地点
+                  </div>
+                  <div class="info-value">2026年5月18日</div>
+                  <div class="info-value">南阳市梅溪国际酒店</div>
                 </div>
               </div>
-              <div class="carousel-btn carousel-prev">‹</div>
-              <div class="carousel-btn carousel-next">›</div>
-              <div class="carousel-dots"></div>
+
+              <button
+                class="modal-close-btn"
+                onclick="switchWeddingPage('map')"
+              >
+                一定到 · 查看地图 →
+              </button>
             </div>
           </div>
+        </div>
 
-          <!-- 右侧：宴席信息 -->
-          <div class="modal-info">
-            <div class="info-title">
-              <span class="info-icon">🎉</span>
-              <h2>婚礼地址</h2>
+        <!-- 页面：地图导航 -->
+        <div class="wedding-page" id="weddingPageMap">
+          <div class="map-panel">
+            <!-- 返回按钮 -->
+            <button class="map-back-btn" onclick="switchWeddingPage('info')">
+              ← 返回
+            </button>
+
+            <!-- 地图预览区 -->
+            <div class="map-preview-wrap">
+              <a
+                class="map-static-fallback"
+                href="https://apis.map.qq.com/uri/v1/marker?marker=coord:33.013070,112.534099;title:南阳市梅溪国际酒店&referer=wedding"
+                target="_blank"
+              >
+                <img
+                  src="https://apis.map.qq.com/uri/v1/marker?marker=coord:33.013070,112.534099;title:南阳市梅溪国际酒店&referer=wedding"
+                  alt="地图预览"
+                  onerror="this.parentElement.classList.add('img-failed')"
+                />
+                <div class="map-static-tip">去导航</div>
+              </a>
             </div>
 
-            <div class="info-details">
-              <div class="info-item">
-                <div class="info-label">
-                  <span class="label-icon">📍</span>
-                  时间&地点
-                </div>
-                <div class="info-value">2026年5月18日</div>
-                <div class="info-value">南阳市梅溪国际酒店</div>
-              </div>
+            <!-- 导航按钮组 -->
+            <div class="map-nav-btns">
+              <button
+                class="map-nav-btn map-nav-wechat"
+                id="wxOpenLocationBtn"
+                onclick="openWxLocation()"
+              >
+                <span>📍</span> 微信地图
+              </button>
             </div>
 
             <button class="modal-close-btn" onclick="closeModal('wedding')">
-              一定到
+              收到，关闭
             </button>
           </div>
         </div>
@@ -523,6 +563,8 @@
       </div>
     </div>
 
+    <!-- 微信 JSSDK -->
+    <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

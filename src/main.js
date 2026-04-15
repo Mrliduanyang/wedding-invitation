@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
+import * as wx from "three/addons/libs/mikktspace.module.js";
 
 // ========== 加载进度条控制 ==========
 const loadingStages = [
@@ -2522,6 +2523,11 @@ window.closeModal = function (destinationType) {
   // 解绑触摸防返回监听
   if (modal._removeTouchGuard) modal._removeTouchGuard();
 
+  // 关闭 wedding 弹窗时重置回信息页
+  if (destinationType === "wedding") {
+    window.switchWeddingPage("info");
+  }
+
   modal.classList.add("closing");
   setTimeout(() => {
     modal.style.display = "none";
@@ -2552,6 +2558,21 @@ window.testDestinationModals = function () {
 
 // 将showDestinationInfo暴露到全局，方便测试
 window.showDestinationInfo = showDestinationInfo;
+
+// ========== 婚礼弹窗页面切换 & 地图导航 ==========
+
+/**
+ * 切换婚礼弹窗内的页面
+ * @param {'info'|'map'} page
+ */
+window.switchWeddingPage = function (page) {
+  const pageInfo = document.getElementById('weddingPageInfo');
+  const pageMap  = document.getElementById('weddingPageMap');
+  if (!pageInfo || !pageMap) return;
+
+  pageInfo.classList.toggle('active', page === 'info');
+  pageMap.classList.toggle('active', page === 'map');
+};
 
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -2638,3 +2659,69 @@ window.addEventListener("load", () => {
   });
 });
 
+// ========== 微信 openLocation 查看位置 ==========
+
+// 婚礼现场坐标（GCJ02，腾讯/高德通用）
+const WEDDING_LOCATION = {
+  latitude: 33.013070,
+  longitude: 112.534099,
+  name: "南阳市梅溪国际酒店",
+  address: "河南省南阳市",
+  scale: 16,
+};
+
+const WX_SIGN_API_URL = "/api/wx-sign";
+
+/**
+ * 判断是否在微信浏览器中
+ */
+function isWeChat() {
+  return /MicroMessenger/i.test(navigator.userAgent);
+}
+
+/**
+ * 初始化微信 JSSDK，仅注册 openLocation 接口
+ * 成功后显示微信地图按钮
+ */
+async function initWxConfig() {
+  if (!isWeChat()) return;
+
+  try {
+    const url = location.href.split("#")[0];
+    const resp = await fetch(`${WX_SIGN_API_URL}?url=${encodeURIComponent(url)}`);
+    if (!resp.ok) throw new Error(`签名接口失败: ${resp.status}`);
+    const { appId, timestamp, nonceStr, signature } = await resp.json();
+
+    wx.config({
+      debug: true,
+      appId,
+      timestamp,
+      nonceStr,
+      signature,
+      jsApiList: ["openLocation"],
+    });
+
+    wx.ready(() => {});
+
+  } catch (err) {
+  }
+}
+
+/**
+ * 调起微信内置地图查看位置
+ */
+window.openWxLocation = function () {
+  if (typeof wx === "undefined") return;
+  wx.openLocation({
+    latitude: WEDDING_LOCATION.latitude,
+    longitude: WEDDING_LOCATION.longitude,
+    name: WEDDING_LOCATION.name,
+    address: WEDDING_LOCATION.address,
+    scale: WEDDING_LOCATION.scale,
+  });
+};
+
+// 页面加载后初始化
+initWxConfig();
+
+showDestinationInfo("wedding");

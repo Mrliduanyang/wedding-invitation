@@ -759,8 +759,7 @@ select option {
   /* 弹窗适配 */
   .modal-overlay {
     padding: 10px;
-    align-items: flex-start; /* 从顶部开始，而不是居中 */
-    padding-top: 20px; /* 为固定标题留出空间 */
+    align-items: center;
   }
 
   .modal-content {
@@ -1553,5 +1552,194 @@ select option {
 
   .step-icon {
     font-size: 1.3em;
+  }
+}
+
+/* ========== 婚礼弹窗页面切换 ========== */
+.wedding-page {
+  display: none;
+}
+
+.wedding-page.active {
+  display: block;
+}
+
+/* 地图返回按钮 */
+.map-back-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 20px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 7px 16px;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: background 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.map-back-btn:hover,
+.map-back-btn:active {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* 地图面板内关闭按钮，去掉额外 margin，保持和 panel padding 对齐 */
+.map-panel .modal-close-btn {
+  margin-top: 4px;
+}
+
+/* ========== 地图面板 ========== */
+.map-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 20px;
+  gap: 16px;
+}
+
+/* 地图预览容器 */
+.map-preview-wrap {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.map-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+/* 静态地图兜底 */
+.map-static-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.05);
+  /* iframe 加载成功时隐藏 */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+/* iframe src 为空时显示静态图 */
+.map-preview-wrap:not(:has(iframe[src])) .map-static-fallback,
+.map-static-fallback.img-failed ~ .map-static-fallback {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.map-static-fallback img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.map-static-tip {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  text-align: center;
+  padding: 8px;
+  font-size: 13px;
+}
+
+/* 地点信息 */
+.map-location-info {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  padding: 14px 16px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.map-location-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.map-location-addr {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 4px;
+}
+
+/* 导航按钮组 */
+.map-nav-btns {
+  display: flex;
+  gap: 10px;
+}
+
+.map-nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 8px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.map-nav-btn span {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.map-nav-btn:active {
+  transform: scale(0.95);
+}
+
+.map-nav-wechat {
+  background: linear-gradient(135deg, #07c160, #1aad19);
+  border: none;
+  cursor: pointer;
+}
+
+
+/* 移动端地图面板适配 */
+@media (max-width: 768px) {
+  .map-panel {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .map-preview-wrap {
+    height: 200px;
+  }
+
+  .map-location-name {
+    font-size: 15px;
+  }
+
+  .map-nav-btn {
+    font-size: 12px;
+    padding: 12px 6px;
+  }
+
+  .map-nav-btn span {
+    font-size: 20px;
   }
 }
