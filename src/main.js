@@ -2582,7 +2582,11 @@ const WX_SHARE_CONFIG = {
 };
 
 async function initWxShare() {
-  if (!isWeChat()) return; // 非微信浏览器跳过
+  console.log("[WxShare] initWxShare 开始执行, UA:", navigator.userAgent);
+  if (!isWeChat()) {
+    console.warn("[WxShare] 非微信浏览器，跳过");
+    return;
+  }
 
   try {
     // 向服务端请求签名
@@ -2721,12 +2725,13 @@ window.addEventListener("load", () => {
   // 初始化虚拟方向键
   initVirtualJoystick();
 
-  // 初始化微信分享
-  initWxShare();
-
   // 监听窗口大小变化，更新移动端状态
   window.addEventListener("resize", () => {
     detectMobile();
   });
 });
+
+// 微信分享在模块加载时立即初始化，不等待 load 事件
+// （type="module" 脚本本身已是 defer，DOM 已就绪）
+initWxShare();
 
