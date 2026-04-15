@@ -2553,6 +2553,87 @@ window.testDestinationModals = function () {
 // 将showDestinationInfo暴露到全局，方便测试
 window.showDestinationInfo = showDestinationInfo;
 
+// ========== 微信 JSSDK 分享 ==========
+
+/**
+ * 判断是否在微信浏览器中
+ */
+function isWeChat() {
+  return /MicroMessenger/i.test(navigator.userAgent);
+}
+
+/**
+ * 初始化微信分享
+ *
+ * 使用方式：
+ * 1. 在你的服务端实现一个签名接口，返回以下字段：
+ *    { appId, timestamp, nonceStr, signature }
+ * 2. 将下方 WX_SIGN_API_URL 改为你实际的签名接口地址
+ *
+ * 签名服务端示例（Node.js）见项目 README。
+ */
+const WX_SIGN_API_URL = "/api/wx-sign"; // ⚠️ 修改为你的签名接口地址
+
+const WX_SHARE_CONFIG = {
+  title: "💒 王莹 & 李端阳 婚礼邀请函",
+  desc: "2026年5月18日，南阳市梅溪国际酒店，诚邀您见证我们的幸福时刻 💍",
+  imgUrl: `${location.origin}/wedding-photos/wedding/1.webp`, // 分享缩略图，建议 300×300 以上
+  link: location.href.split("#")[0], // 分享链接（不带 hash）
+};
+
+async function initWxShare() {
+  if (!isWeChat()) return; // 非微信浏览器跳过
+
+  try {
+    // 向服务端请求签名
+    const url = location.href.split("#")[0];
+    const resp = await fetch(
+      `${WX_SIGN_API_URL}?url=${encodeURIComponent(url)}`
+    );
+    if (!resp.ok) throw new Error(`签名接口请求失败: ${resp.status}`);
+    const { appId, timestamp, nonceStr, signature } = await resp.json();
+
+    wx.config({
+      debug: false,
+      appId,
+      timestamp,
+      nonceStr,
+      signature,
+      jsApiList: ["updateAppMessageShareData", "updateTimelineShareData"],
+    });
+
+    wx.ready(() => {
+      // 分享给朋友
+      wx.updateAppMessageShareData({
+        title: WX_SHARE_CONFIG.title,
+        desc: WX_SHARE_CONFIG.desc,
+        link: WX_SHARE_CONFIG.link,
+        imgUrl: WX_SHARE_CONFIG.imgUrl,
+        success() {
+          console.log("[WxShare] 分享给朋友配置成功");
+        },
+      });
+
+      // 分享到朋友圈
+      wx.updateTimelineShareData({
+        title: WX_SHARE_CONFIG.title,
+        link: WX_SHARE_CONFIG.link,
+        imgUrl: WX_SHARE_CONFIG.imgUrl,
+        success() {
+          console.log("[WxShare] 分享到朋友圈配置成功");
+        },
+      });
+    });
+
+    wx.error((res) => {
+      console.warn("[WxShare] wx.config 错误:", res);
+    });
+  } catch (err) {
+    console.warn("[WxShare] 初始化失败:", err.message);
+  }
+}
+
+
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
@@ -2631,6 +2712,9 @@ window.addEventListener("load", () => {
 
   // 初始化虚拟方向键
   initVirtualJoystick();
+
+  // 初始化微信分享
+  initWxShare();
 
   // 监听窗口大小变化，更新移动端状态
   window.addEventListener("resize", () => {
