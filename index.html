@@ -331,31 +331,15 @@
               ← 返回
             </button>
 
-            <!-- 地图预览区 -->
-            <div class="map-preview-wrap">
-              <a
-                class="map-static-fallback"
-                href="https://apis.map.qq.com/uri/v1/marker?marker=coord:33.013070,112.534099;title:南阳市梅溪国际酒店&referer=wedding"
-                target="_blank"
-              >
-                <img
-                  src="https://apis.map.qq.com/uri/v1/marker?marker=coord:33.013070,112.534099;title:南阳市梅溪国际酒店&referer=wedding"
-                  alt="地图预览"
-                  onerror="this.parentElement.classList.add('img-failed')"
-                />
-                <div class="map-static-tip">去导航</div>
-              </a>
-            </div>
-
-            <!-- 导航按钮组 -->
-            <div class="map-nav-btns">
-              <button
-                class="map-nav-btn map-nav-wechat"
-                id="wxOpenLocationBtn"
-                onclick="openWxLocation()"
-              >
-                <span>📍</span> 微信地图
-              </button>
+            <!-- 地图预览区（点击调起微信地图） -->
+            <div class="map-preview-wrap" onclick="openWxLocation()">
+              <img
+                class="map-static-img"
+                src="https://apis.map.qq.com/ws/staticmap/v2/?center=32.990191,112.533027&zoom=16&size=600*400&markers=coord:32.990191,112.533027;title:南阳市梅溪国际酒店&key=OB4BZ-D4W3U-B7VVO-4PJWW-6TKDJ-WPB77"
+                alt="地图预览"
+                onerror="this.src='https://apis.map.qq.com/uri/v1/marker?marker=coord:32.990191,112.533027;title:南阳市梅溪国际酒店&referer=wedding'"
+              />
+              <div class="map-static-tip">📍 点击导航</div>
             </div>
 
             <button class="modal-close-btn" onclick="closeModal('wedding')">
