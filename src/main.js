@@ -2662,8 +2662,8 @@ window.addEventListener("load", () => {
 
 // 婚礼现场坐标（GCJ02，腾讯/高德通用）
 const WEDDING_LOCATION = {
-  latitude: 33.013070,
-  longitude: 112.534099,
+  latitude: 32.990194,
+  longitude: 112.533032,
   name: "南阳市梅溪国际酒店",
   address: "河南省南阳市",
   scale: 16,
