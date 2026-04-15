@@ -2594,35 +2594,42 @@ async function initWxShare() {
     const { appId, timestamp, nonceStr, signature } = await resp.json();
 
     wx.config({
-      debug: false,
+      debug: true, // 调试期间开启，上线前改回 false
       appId,
       timestamp,
       nonceStr,
       signature,
-      jsApiList: ["updateAppMessageShareData", "updateTimelineShareData"],
+      jsApiList: [
+        "updateAppMessageShareData",
+        "updateTimelineShareData",
+        // 旧版兜底（部分低版本微信仍使用这两个接口）
+        "onMenuShareAppMessage",
+        "onMenuShareTimeline",
+      ],
     });
 
     wx.ready(() => {
-      // 分享给朋友
-      wx.updateAppMessageShareData({
+      const shareToFriend = {
         title: WX_SHARE_CONFIG.title,
         desc: WX_SHARE_CONFIG.desc,
         link: WX_SHARE_CONFIG.link,
         imgUrl: WX_SHARE_CONFIG.imgUrl,
-        success() {
-          console.log("[WxShare] 分享给朋友配置成功");
-        },
-      });
-
-      // 分享到朋友圈
-      wx.updateTimelineShareData({
+        success() { console.log("[WxShare] 分享给朋友配置成功"); },
+      };
+      const shareToTimeline = {
         title: WX_SHARE_CONFIG.title,
         link: WX_SHARE_CONFIG.link,
         imgUrl: WX_SHARE_CONFIG.imgUrl,
-        success() {
-          console.log("[WxShare] 分享到朋友圈配置成功");
-        },
-      });
+        success() { console.log("[WxShare] 分享到朋友圈配置成功"); },
+      };
+
+      // 新版接口
+      wx.updateAppMessageShareData(shareToFriend);
+      wx.updateTimelineShareData(shareToTimeline);
+
+      // 旧版兜底
+      if (wx.onMenuShareAppMessage) wx.onMenuShareAppMessage(shareToFriend);
+      if (wx.onMenuShareTimeline) wx.onMenuShareTimeline(shareToTimeline);
     });
 
     wx.error((res) => {
