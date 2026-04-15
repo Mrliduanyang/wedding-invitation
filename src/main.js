@@ -2721,4 +2721,3 @@ window.openWxLocation = function () {
 // 页面加载后初始化
 initWxConfig();
 
-showDestinationInfo("wedding");
