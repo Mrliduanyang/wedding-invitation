@@ -9,31 +9,31 @@ const loadingStages = [
     id: "world",
     percent: 10,
     stepId: "step-world",
-    text: "🌍 正在创建世界...",
+    text: "🌍正在创建世界...",
   },
   {
     id: "roads",
     percent: 30,
     stepId: "step-roads",
-    text: "🛣️ 铺设道路网络...",
+    text: "🛣️铺设道路网络...",
   },
   {
     id: "buildings",
     percent: 55,
     stepId: "step-buildings",
-    text: "🏙️ 建造婚礼城市...",
+    text: "🏙️建造婚礼城市...",
   },
   {
     id: "ferrari",
     percent: 75,
     stepId: "step-ferrari",
-    text: "🏎️ 法拉利458加载中...",
+    text: "🏎️法拉利458加载中...",
   },
   {
     id: "ready",
     percent: 100,
     stepId: "step-ready",
-    text: "✨ 一切准备就绪！",
+    text: "✨一切准备就绪！",
   },
 ];
 let _loadingCurrentPercent = 0;
@@ -681,7 +681,7 @@ function updateDestination() {
 
 function generateRoute() {
   if (!selectedDestination) {
-    updateStatus("⚠️ 请选择目的地");
+    updateStatus("⚠️请选择目的地");
     return;
   }
 
@@ -691,17 +691,17 @@ function generateRoute() {
   const distance = (Math.random() * 15 + 5).toFixed(1);
   const time = Math.ceil(distance * (currentTransport === "taxi" ? 1.5 : 1.2));
 
-  updateStatus(`✓ 路线已生成\n距离: ${distance}km\n预计时间: ${time}分钟`);
+  updateStatus(`✓路线已生成\n距离: ${distance}km\n预计时间: ${time}分钟`);
 
   // 显示路线信息面板
   const infoPanel = document.getElementById("infoPanel");
   infoPanel.style.display = "block";
   document.getElementById("routeInfo").innerHTML = `
     <div class="route-info">
-      <p>📍 目的地: ${document.getElementById("destinationSelect").options[document.getElementById("destinationSelect").selectedIndex].text}</p>
-      <p class="distance">📏 距离: ${distance} km</p>
-      <p class="time">⏱️ 时间: 约 ${time} 分钟</p>
-      <p>🚗 方式: ${currentTransport === "taxi" ? "🚖 打车服务" : "🚗 自驾"}</p>
+      <p>📍目的地: ${document.getElementById("destinationSelect").options[document.getElementById("destinationSelect").selectedIndex].text}</p>
+      <p class="distance">📏距离: ${distance}km</p>
+      <p class="time">⏱️时间: 约${time}分钟</p>
+      <p>🚗方式: ${currentTransport === "taxi" ? "🚖打车服务" : "🚗自驾"}</p>
     </div>
   `;
 
@@ -1076,10 +1076,10 @@ function startJourney() {
   const destName = destinationNames[selectedDestination] || "目的地";
 
   if (currentTransport === "taxi") {
-    updateStatus("🚖 打车模式：自动导航中...");
+    updateStatus("🚖打车模式：自动导航中...");
     speak(`开始导航，目的地${destName}，请系好安全带`);
   } else {
-    updateStatus("🚗 自驾模式：使用方向键控制（↑↓←→）");
+    updateStatus("🚗自驾模式：使用方向键控制（↑↓←→）");
     speak(`开始导航，目的地${destName}，请小心驾驶`);
   }
 
@@ -1277,13 +1277,13 @@ function speak(text) {
 
     // 监听播报失败事件
     utterance.onerror = (event) => {
-      showToast(`🔔 ${text}`, "warning");
+      showToast(`🔔${text}`, "warning");
     };
 
     synth.speak(utterance);
   } catch (error) {
     // 异常时显示 Toast 提示
-    showToast(`🔔 ${text}`, "warning");
+    showToast(`🔔${text}`, "warning");
   }
 }
 
@@ -2265,7 +2265,7 @@ function onArrival() {
   routeSegments.forEach((segment) => scene.remove(segment));
   routeSegments = [];
 
-  updateStatus("✨ 已到达目的地！");
+  updateStatus("✨已到达目的地！");
 
   // 语音播报到达
   const destinationNames = {
@@ -2274,7 +2274,7 @@ function onArrival() {
     bride: "新娘家",
   };
   const destName = destinationNames[selectedDestination] || "目的地";
-  speak(`已到达${destName}，祝您生活愉快`);
+  speak(`已到达${destName}，祝您幸福美满`);
 
   // 停止烟花效果
   disableFireworks();
@@ -2442,7 +2442,7 @@ function showDestinationInfo(destinationType = null) {
     const remainingDaysInYear = remainingDays % 365;
 
     const ledContents = modal.querySelectorAll(".led-content");
-    const ledText = `💒 执子之手，与子偕老 · 离百年好合还有${remainingYears}年${remainingDaysInYear}天 💒`;
+    const ledText = `💒执子之手，与子偕老 · 离百年好合还有${remainingYears}年${remainingDaysInYear}天💒`;
     ledContents.forEach((span) => {
       span.textContent = ledText;
     });
