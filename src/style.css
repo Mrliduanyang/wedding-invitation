@@ -327,6 +327,8 @@ select option {
   animation: slideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   overflow: hidden;
   background: linear-gradient(135deg, #4a9ff5 0%, #87ceeb 50%, #b0e0e6 100%);
+  display: flex;
+  flex-direction: column;
 }
 
 /* 婚礼现场弹窗主题 */
@@ -392,7 +394,10 @@ select option {
   display: flex;
   padding: 40px;
   gap: 30px;
-  align-items: center;
+  align-items: flex-start;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 /* 左侧：新人合照 (2:3比例) */
@@ -431,6 +436,7 @@ select option {
 /* 右侧：宴席信息 */
 .modal-info {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   color: white;
@@ -496,16 +502,18 @@ select option {
 .love-story {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 8px;
   color: white;
-  font-size: 16px;
-  line-height: 1.8;
-  padding: 20px;
+  font-size: 14px;
+  line-height: 1.65;
+  padding: 14px 16px;
   background: rgba(255, 255, 255, 0.15);
   border-radius: 15px;
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  max-height: 400px;
+  flex: 1;
+  min-height: 0;
+  max-height: 220px;
   overflow-y: auto;
 }
 
@@ -857,10 +865,11 @@ select option {
 
   /* 爱情故事 */
   .love-story {
-    font-size: 14px;
-    line-height: 1.6;
-    max-height: 250px;
-    padding: 15px;
+    font-size: 13px;
+    line-height: 1.55;
+    max-height: 180px;
+    padding: 10px 12px;
+    gap: 6px;
   }
 
   .love-story p {
