@@ -1564,6 +1564,137 @@ select option {
   }
 }
 
+/* ========== 引导弹窗 ========== */
+.guide-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  animation: guideFadeIn 0.4s ease;
+}
+
+@keyframes guideFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.guide-overlay.guide-closing {
+  animation: guideFadeOut 0.35s ease forwards;
+}
+
+@keyframes guideFadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+.guide-box {
+  background: linear-gradient(145deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  border-radius: 24px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+  padding: 40px 44px 36px;
+  width: min(520px, 92vw);
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.guide-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.guide-line {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.guide-line.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.guide-btns {
+  display: flex;
+  gap: 14px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.guide-btns.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.guide-btn {
+  flex: 1;
+  padding: 13px 10px;
+  border: none;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+.guide-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.guide-btn:active {
+  transform: translateY(0);
+}
+
+.guide-btn-skip {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+}
+
+.guide-btn-start {
+  background: linear-gradient(135deg, #ff6b9d, #ff4081);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(255, 64, 129, 0.45);
+}
+
+@media (max-width: 768px) {
+  .guide-box {
+    padding: 28px 22px 24px;
+    gap: 24px;
+    border-radius: 20px;
+  }
+
+  .guide-line {
+    font-size: 14px;
+  }
+
+  .guide-btns {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .guide-btn {
+    padding: 14px 10px;
+    font-size: 15px;
+  }
+}
+
 /* ========== 婚礼弹窗页面切换 ========== */
 .wedding-page {
   display: none;
