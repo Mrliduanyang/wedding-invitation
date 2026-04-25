@@ -122,7 +122,7 @@ function showGuideModal() {
   const btns = overlay.querySelector(".guide-btns");
   setTimeout(() => {
     if (btns) btns.classList.add("visible");
-  }, lastDelay + 800);
+  }, lastDelay + 2000);
 }
 
 function closeGuideModal(callback) {
