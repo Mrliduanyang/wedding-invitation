@@ -97,8 +97,10 @@ function hideLoadingScreen() {
   if (!screen) return;
   screen.classList.add("fade-out");
   setTimeout(() => {
-    screen.style.display = "none";
     showGuideModal();
+  }, 400);
+  setTimeout(() => {
+    screen.style.display = "none";
   }, 800);
 }
 
@@ -118,7 +120,9 @@ function showGuideModal() {
   });
 
   // 按钮在最后一行出现后再显示
-  const lastDelay = Math.max(...Array.from(lines).map((l) => parseInt(l.dataset.delay, 10) || 0));
+  const lastDelay = Math.max(
+    ...Array.from(lines).map((l) => parseInt(l.dataset.delay, 10) || 0),
+  );
   const btns = overlay.querySelector(".guide-btns");
   setTimeout(() => {
     if (btns) btns.classList.add("visible");
@@ -272,7 +276,7 @@ async function createCityScene() {
   // 地面 - 扩大范围
   const groundGeometry = new THREE.PlaneGeometry(600, 600);
   const groundMaterial = new THREE.MeshLambertMaterial({
-    color: 0x5ee87a,  // 亮草绿，更清新
+    color: 0x5ee87a, // 亮草绿，更清新
   });
   const ground = new THREE.Mesh(groundGeometry, groundMaterial);
   ground.rotation.x = -Math.PI / 2;
@@ -675,8 +679,8 @@ function createBalloons() {
     const balloon = new THREE.Mesh(geometry, material);
 
     balloon.position.set(
-      (Math.random() - 0.5) * 340,   // 更大范围分布
-      45 + Math.random() * 110,       // 高度 45~155，层次更丰富
+      (Math.random() - 0.5) * 340, // 更大范围分布
+      45 + Math.random() * 110, // 高度 45~155，层次更丰富
       (Math.random() - 0.5) * 340,
     );
 
@@ -2177,7 +2181,7 @@ function animate() {
           while (
             lookAheadIndex + 1 < currentRoutePoints.length &&
             accumulatedDistance < lookAheadDistance
-            ) {
+          ) {
             const currentPoint = currentRoutePoints[lookAheadIndex];
             const nextPoint = currentRoutePoints[lookAheadIndex + 1];
             const segmentDist = Math.hypot(
@@ -2603,12 +2607,12 @@ window.showDestinationInfo = showDestinationInfo;
  * @param {'info'|'map'} page
  */
 window.switchWeddingPage = function (page) {
-  const pageInfo = document.getElementById('weddingPageInfo');
-  const pageMap  = document.getElementById('weddingPageMap');
+  const pageInfo = document.getElementById("weddingPageInfo");
+  const pageMap = document.getElementById("weddingPageMap");
   if (!pageInfo || !pageMap) return;
 
-  pageInfo.classList.toggle('active', page === 'info');
-  pageMap.classList.toggle('active', page === 'map');
+  pageInfo.classList.toggle("active", page === "info");
+  pageMap.classList.toggle("active", page === "map");
 };
 
 function onWindowResize() {
@@ -2735,7 +2739,9 @@ async function initWxConfig() {
 
   try {
     const url = location.href.split("#")[0];
-    const resp = await fetch(`${WX_SIGN_API_URL}?url=${encodeURIComponent(url)}`);
+    const resp = await fetch(
+      `${WX_SIGN_API_URL}?url=${encodeURIComponent(url)}`,
+    );
     if (!resp.ok) throw new Error(`签名接口失败: ${resp.status}`);
     const { appId, timestamp, nonceStr, signature } = await resp.json();
 
@@ -2768,4 +2774,3 @@ window.openWxLocation = function () {
 
 // 页面加载后初始化
 initWxConfig();
-
