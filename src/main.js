@@ -180,6 +180,9 @@ let fireworksEnabled = false; // 是否启用烟花
 let fireworksLastLaunchTime = 0; // 上次发射时间
 const FIREWORKS_LAUNCH_INTERVAL = 400; // 发射间隔（毫秒）
 
+// BGM 系统（目的地弹窗背景音乐）
+let bgmAudio = null; // BGM Audio 实例
+
 // 加减速系统
 let currentActualSpeed = 0; // 当前实际速度（从0开始）
 let targetSpeed = 0; // 目标速度
@@ -1515,6 +1518,37 @@ function stopEngineSound() {
   isEnginePlaying = false;
 }
 
+// ========== 目的地弹窗 BGM ==========
+// ========== 目的地弹窗 BGM ==========
+function startBgm() {
+  stopBgm();
+  bgmAudio = new Audio("./bgm.mp3");
+  bgmAudio.loop = true;
+  bgmAudio.volume = 0;
+  bgmAudio.play().catch(() => {});
+  // 淡入：0 → 0.5，持续 1s
+  const fadeIn = setInterval(() => {
+    if (!bgmAudio) { clearInterval(fadeIn); return; }
+    bgmAudio.volume = Math.min(bgmAudio.volume + 0.05, 0.5);
+    if (bgmAudio.volume >= 0.5) clearInterval(fadeIn);
+  }, 50);
+}
+
+function stopBgm() {
+  if (!bgmAudio) return;
+  const audio = bgmAudio;
+  bgmAudio = null;
+  // 淡出：volume → 0，持续 0.6s，再 pause
+  const fadeOut = setInterval(() => {
+    audio.volume = Math.max(audio.volume - 0.05, 0);
+    if (audio.volume <= 0) {
+      clearInterval(fadeOut);
+      audio.pause();
+      audio.src = "";
+    }
+  }, 30);
+}
+
 // 设置键盘控制
 function setupKeyboardControls() {
   // 移除旧的监听器（如果有）
@@ -2493,6 +2527,9 @@ function showDestinationInfo(destinationType = null) {
   // 显示弹窗
   modal.style.display = "flex";
 
+  // 启动 BGM
+  startBgm();
+
   // 启动轮播
   const carouselEl = modal.querySelector(".carousel");
   if (carouselEl) initCarousel(carouselEl);
@@ -2556,6 +2593,9 @@ window.closeModal = function (destinationType) {
 
   const modal = document.getElementById(modalId);
   if (!modal) return;
+
+  // 停止 BGM
+  stopBgm();
 
   // 销毁轮播
   const carouselEl = modal.querySelector(".carousel");
