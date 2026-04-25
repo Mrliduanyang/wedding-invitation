@@ -98,7 +98,45 @@ function hideLoadingScreen() {
   screen.classList.add("fade-out");
   setTimeout(() => {
     screen.style.display = "none";
+    showGuideModal();
   }, 800);
+}
+
+// ========== 引导弹窗 ==========
+function showGuideModal() {
+  const overlay = document.getElementById("guideModal");
+  if (!overlay) return;
+  overlay.style.display = "flex";
+
+  // 逐行渐现
+  const lines = overlay.querySelectorAll(".guide-line");
+  lines.forEach((line) => {
+    const delay = parseInt(line.dataset.delay, 10) || 0;
+    setTimeout(() => {
+      line.classList.add("visible");
+    }, delay + 200);
+  });
+
+  // 按钮在最后一行出现后再显示
+  const lastDelay = Math.max(...Array.from(lines).map((l) => parseInt(l.dataset.delay, 10) || 0));
+  const btns = overlay.querySelector(".guide-btns");
+  setTimeout(() => {
+    if (btns) btns.classList.add("visible");
+  }, lastDelay + 800);
+}
+
+function closeGuideModal(callback) {
+  const overlay = document.getElementById("guideModal");
+  if (!overlay) {
+    if (callback) callback();
+    return;
+  }
+  overlay.classList.add("guide-closing");
+  setTimeout(() => {
+    overlay.style.display = "none";
+    overlay.classList.remove("guide-closing");
+    if (callback) callback();
+  }, 350);
 }
 
 // ========== 全局变量 ==========
@@ -2651,6 +2689,16 @@ window.addEventListener("load", () => {
 
   // 初始化虚拟方向键
   initVirtualJoystick();
+
+  // 引导弹窗按钮
+  document.getElementById("guideBtnSkip").addEventListener("click", () => {
+    closeGuideModal(() => {
+      showDestinationInfo("wedding");
+    });
+  });
+  document.getElementById("guideBtnStart").addEventListener("click", () => {
+    closeGuideModal();
+  });
 
   // 监听窗口大小变化，更新移动端状态
   window.addEventListener("resize", () => {
