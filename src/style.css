@@ -829,16 +829,7 @@ select option {
   }
 
   .info-title {
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-  }
-
-  .info-title h2 {
-    font-size: 20px;
-  }
-
-  .info-icon {
-    font-size: 24px;
+    display: none;
   }
 
   .info-details {
