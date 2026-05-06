@@ -96,7 +96,7 @@ function hideLoadingScreen() {
   const screen = document.getElementById("loadingScreen");
   if (!screen) return;
   screen.classList.add("fade-out");
-  track("page_view");
+  analytics("page_view");
   setTimeout(() => {
     showGuideModal();
   }, 400);
@@ -110,7 +110,7 @@ function showGuideModal() {
   const overlay = document.getElementById("guideModal");
   if (!overlay) return;
   overlay.style.display = "flex";
-  track("guide_show");
+  analytics("guide_show");
 
   // 逐行渐现
   const lines = overlay.querySelectorAll(".guide-line");
@@ -737,7 +737,7 @@ function generateRoute() {
 
   const distance = (Math.random() * 15 + 5).toFixed(1);
   const time = Math.ceil(distance * (currentTransport === "taxi" ? 1.5 : 1.2));
-  track("generate_route", {
+  analytics("generate_route", {
     destination: selectedDestination,
     transport: currentTransport,
     distance_km: parseFloat(distance),
@@ -1096,7 +1096,7 @@ function startJourney() {
   isShowingRoutePreview = false;
   currentRouteIndex = 0;
   lastUpdatedRouteIndex = -1; // 重置导航线更新状态
-  track("navigate_start", {
+  analytics("navigate_start", {
     destination: selectedDestination,
     transport: currentTransport,
   });
@@ -2354,7 +2354,7 @@ function onArrival() {
   routeSegments = [];
 
   updateStatus("✨已到达目的地！");
-  track("navigate_arrive", {
+  analytics("navigate_arrive", {
     destination: selectedDestination,
     transport: currentTransport,
   });
@@ -2423,7 +2423,7 @@ function initCarousel(carouselEl) {
     _carousels[id].index = current;
     // 上报图片浏览埋点
     if (_carousels[id]) {
-      track("photo_view", {
+      analytics("photo_view", {
         modal: id.replace("carousel-", ""),
         photo_index: current + 1, // 从 1 开始，更直观
         photo_total: total,
@@ -2550,7 +2550,7 @@ function showDestinationInfo(destinationType = null) {
 
   // 显示弹窗
   modal.style.display = "flex";
-  track("modal_open", { modal: destType });
+  analytics("modal_open", { modal: destType });
 
   // 启动 BGM
   startBgm();
@@ -2619,7 +2619,7 @@ window.closeModal = function (destinationType) {
   const modal = document.getElementById(modalId);
   if (!modal) return;
 
-  track("modal_close", { modal: destinationType });
+  analytics("modal_close", { modal: destinationType });
 
   // 停止 BGM
   stopBgm();
@@ -2763,13 +2763,13 @@ window.addEventListener("load", () => {
 
   // 引导弹窗按钮
   document.getElementById("guideBtnSkip").addEventListener("click", () => {
-    track("guide_click", { btn: "skip" });
+    analytics("guide_click", { btn: "skip" });
     closeGuideModal(() => {
       showDestinationInfo("wedding");
     });
   });
   document.getElementById("guideBtnStart").addEventListener("click", () => {
-    track("guide_click", { btn: "start" });
+    analytics("guide_click", { btn: "start" });
     closeGuideModal();
   });
 
@@ -2800,7 +2800,7 @@ const TRACK_API_URL = "/api/track";
  * @param {string} event  事件名
  * @param {object} extra  附加参数
  */
-function track(event, extra = {}) {
+function analytics(event, extra = {}) {
   const payload = {
     event,
     ts: Date.now(),
