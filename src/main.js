@@ -2421,6 +2421,14 @@ function initCarousel(carouselEl) {
       d.classList.toggle("active", i === current);
     });
     _carousels[id].index = current;
+    // 上报图片浏览埋点
+    if (_carousels[id]) {
+      track("photo_view", {
+        modal: id.replace("carousel-", ""),
+        photo_index: current + 1, // 从 1 开始，更直观
+        photo_total: total,
+      });
+    }
   }
 
   // 按钮事件（阻止冒泡，避免触发 modal 遮罩关闭）
